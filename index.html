@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Crumb Journal">
+<title>Crumb Journal</title>
+<style>
+:root{
+  --serif: Georgia,'Times New Roman',serif;
+  --sans: -apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#f5ede2;font-family:var(--serif);-webkit-text-size-adjust:100%}
+#app{max-width:480px;margin:0 auto;min-height:100vh;background:#faf4ee}
+/* header */
+.hdr{background:#3a2a1a;padding:22px 20px 18px;position:sticky;top:0;z-index:100}
+.hdr-title{font-family:var(--serif);font-size:22px;font-weight:900;color:#f5e8d4;letter-spacing:-.01em}
+.hdr-sub{font-size:12px;color:#8a7060;letter-spacing:.1em;text-transform:uppercase;margin-top:2px;font-family:var(--sans)}
+.hdr-nav{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.nav-btn{padding:6px 14px;border-radius:20px;border:1.5px solid #5a4a3a;background:transparent;color:#c8a87a;font-family:var(--sans);font-size:13px;cursor:pointer;letter-spacing:.06em;text-transform:uppercase}
+.nav-btn.active{background:#c8a87a;color:#3a2a1a;border-color:#c8a87a}
+/* content */
+.content{padding:20px 16px}
+/* cards */
+.card{background:#fdf8f3;border:1.5px solid #e0d0c0;border-radius:14px;margin-bottom:12px;cursor:pointer;overflow:hidden;box-shadow:0 1px 4px rgba(100,60,20,.07)}
+.card-hero{width:100%;height:190px;object-fit:cover;display:block;border-bottom:1px solid #e0d0c0}
+.card-body{padding:14px 16px}
+.card-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.card-test{font-family:var(--serif);font-size:18px;font-weight:700;color:#3a2a1a}
+.card-date{font-family:var(--serif);font-size:13px;color:#8a7060;margin-left:10px}
+.score-badge{border-radius:20px;padding:3px 12px;font-family:var(--serif);font-weight:700;font-size:15px}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px}
+.tag{background:#f0e8dc;color:#7a5a3a;border-radius:6px;padding:2px 9px;font-size:12px;font-family:var(--serif)}
+.tag-blend{background:#efe5d5;color:#5a3a1a}
+.spring-note{font-family:var(--serif);font-size:13px;color:#8a7060;margin-top:8px;font-style:italic}
+.thumb-row{display:flex;gap:6px;margin-top:10px;overflow-x:auto}
+.thumb{width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #e0d0c0;flex-shrink:0;cursor:pointer}
+/* list header */
+.list-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.list-count{font-family:var(--serif);font-size:17px;color:#3a2a1a}
+/* form */
+.form-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
+.form-title{font-family:var(--serif);font-size:22px;font-weight:700;color:#3a2a1a}
+.close-btn{background:none;border:none;font-size:22px;color:#8a7060;cursor:pointer;padding:4px}
+.section-title{font-family:var(--serif);font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#7a5a3a;border-bottom:1px solid #e0d0c0;padding-bottom:6px;margin-bottom:14px}
+.section{margin-bottom:20px}
+.field{margin-bottom:14px}
+.field-label{font-size:11px;font-family:var(--serif);letter-spacing:.08em;text-transform:uppercase;color:#8a7060;margin-bottom:4px}
+.field-hint{margin-left:6px;font-style:italic;text-transform:none;letter-spacing:0;color:#b09080}
+input,textarea,select{width:100%;box-sizing:border-box;padding:9px 12px;border:1.5px solid #d4c4b4;border-radius:8px;background:#fdf8f3;font-family:var(--serif);font-size:15px;color:#3a2a1a;outline:none;-webkit-appearance:none}
+textarea{resize:vertical}
+input[type=number]::-webkit-inner-spin-button{opacity:.4}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.hydration-bar{background:#f0e8dc;border-radius:10px;padding:10px 14px;font-family:var(--serif);font-size:15px;color:#5a3a1a;margin-bottom:4px;display:flex;justify-content:space-between}
+/* flour rows */
+.flour-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.flour-name{flex:2;padding:8px 10px!important;font-size:14px!important}
+.flour-g{width:72px!important;flex:none!important;padding:8px 8px!important;font-size:14px!important;text-align:right}
+.blend-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+/* levain */
+.levain-total-row{background:#e8f0e4;border-radius:8px;padding:7px 12px;font-size:13px;font-family:var(--serif);margin-bottom:6px;display:flex;justify-content:space-between}
+.levain-total-row.warn{background:#fdf0e0;color:#8a5a20}
+/* sifted toggle */
+.toggle-row{display:flex;gap:8px;margin-top:2px}
+.toggle-opt{padding:7px 18px;border-radius:20px;cursor:pointer;border:1.5px solid #d4c4b4;background:#fdf8f3;color:#8a7060;font-family:var(--serif);font-size:14px}
+.toggle-opt.active{border-color:#7a5a3a;background:#f0e8dc;color:#5a3a1a}
+/* score */
+.score-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
+.score-btn{width:38px;height:38px;border-radius:50%;border:1.5px solid #d4c4b4;background:#fdf8f3;color:#8a7060;font-family:var(--serif);font-weight:700;font-size:14px;cursor:pointer}
+.score-btn.active{border-width:2.5px;border-color:#7a5a3a}
+/* photo editor */
+.photo-grid{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.photo-wrap{position:relative}
+.photo-thumb{width:90px;height:90px;object-fit:cover;border-radius:10px;border:1.5px solid #d4c4b4;cursor:pointer;display:block}
+.photo-remove{position:absolute;top:-7px;right:-7px;background:#5a3a1a;border:none;color:#fff;font-size:11px;border-radius:50%;width:22px;height:22px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.add-photo-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:11px 16px;border:1.5px dashed #c4a88a;border-radius:10px;background:#fdf8f3;color:#7a5a3a;font-family:var(--serif);font-size:14px;cursor:pointer}
+.add-row-btn{display:flex;align-items:center;gap:6px;padding:7px 12px;border:1px dashed #c4a88a;border-radius:8px;background:transparent;color:#8a6a4a;font-family:var(--serif);font-size:13px;cursor:pointer;margin-top:6px}
+.remove-btn{background:none;border:none;color:#c08070;font-size:18px;cursor:pointer;padding:0 2px;line-height:1;flex-shrink:0}
+/* save/delete */
+.save-btn{width:100%;padding:14px;background:#5a3a1a;color:#fdf8f3;border:none;border-radius:12px;font-family:var(--serif);font-size:17px;font-weight:700;cursor:pointer;letter-spacing:.04em;margin-bottom:12px}
+.new-bake-btn{background:#5a3a1a;color:#f5e8d4;border:none;border-radius:20px;padding:8px 18px;font-family:var(--serif);font-size:14px;cursor:pointer}
+.delete-btn{width:100%;padding:11px;background:none;color:#a05a4a;border:1.5px solid #d4b4a4;border-radius:12px;font-family:var(--serif);font-size:15px;cursor:pointer}
+/* compare */
+.compare-photos{display:flex;gap:10px;margin-bottom:16px;overflow-x:auto}
+.compare-photo-wrap{flex-shrink:0;text-align:center}
+.compare-photo{width:80px;height:80px;object-fit:cover;border-radius:10px;border:1.5px solid #e0d0c0;cursor:pointer;display:block}
+.compare-placeholder{width:80px;height:80px;border-radius:10px;background:#f0e8dc;display:flex;align-items:center;justify-content:center;font-size:26px;border:1.5px solid #e0d0c0}
+.compare-label{font-family:var(--serif);font-size:12px;color:#7a5a3a;margin-top:4px}
+.compare-table{width:100%;border-collapse:collapse;font-family:var(--serif)}
+.compare-table th{padding:8px 8px;font-size:11px;color:#8a7060;border-bottom:2px solid #e0d0c0;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap}
+.compare-table th.test-col{text-align:center;font-family:var(--serif);font-size:13px;color:#3a2a1a}
+.compare-table td{padding:9px 8px;font-size:12px;border-bottom:1px solid #e8dcd0;word-break:break-word;max-width:120px}
+.compare-table td.var-col{color:#5a4a3a;white-space:nowrap}
+.compare-table td.val-col{text-align:center;color:#3a2a1a}
+/* lightbox */
+.lightbox{position:fixed;inset:0;background:rgba(15,8,3,.94);z-index:2000;display:flex;align-items:center;justify-content:center}
+.lightbox img{max-width:96vw;max-height:88vh;border-radius:10px;object-fit:contain}
+.lightbox-close{position:absolute;top:18px;right:18px;background:rgba(255,255,255,.18);border:none;color:#fff;font-size:20px;border-radius:50%;width:40px;height:40px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+/* loading */
+.loading{display:flex;align-items:center;justify-content:center;height:100vh;color:#8a7060;font-size:16px}
+/* grain library */
+.grain-card{background:#fdf8f3;border:1.5px solid #e0d0c0;border-radius:14px;margin-bottom:12px;cursor:pointer;overflow:hidden;box-shadow:0 1px 4px rgba(100,60,20,.07);padding:14px 16px}
+.grain-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
+.grain-name{font-family:var(--serif);font-size:18px;font-weight:700;color:#3a2a1a}
+.grain-farm{font-family:var(--serif);font-size:13px;color:#8a7060;margin-bottom:8px;font-style:italic}
+.grain-best{font-family:var(--serif);font-size:13px;color:#5a4a3a;margin-top:6px}
+.grain-notes{font-family:var(--serif);font-size:13px;color:#6a5a4a;margin-top:4px;line-height:1.5}
+</style>
+</head>
+<body>
+<div id="app"><div class="loading">Loading…</div></div>
+
+<script>
+// ── Data ──────────────────────────────────────────────────────────────────────
+const STORAGE_KEY = "crumb-journal-v1";
+
+const INITIAL_BAKES = [
+  {id:1,date:"2025-05",testNum:1,flours:[{name:"Hard White Wheat (fresh-milled)",grams:428}],hydration1Pct:80,water1G:342,hydration2Pct:10,water2G:43,saltG:9,levain:{totalG:64,buildHr:5,components:[{name:"Hard White Wheat flour",grams:32},{name:"Ripe starter",grams:16},{name:"Water",grams:16}]},slapFoldMin:5,stretchFolds:4,sifted:"No",autolyseHr:1,bulkHr:4.5,bulkTempNote:"Warm ambient (LA summer)",retard:"Overnight",bakeTempF:450,bakeTimeMin:45,ovenSpring:"None – very flat",crumb:"Dense, tight crumb",crust:"Dark, hard",taste:"Good flavour",score:4,keyIssue:"Overfermented bulk (4.5 hr too long at warm temp)",nextChange:"Reduce bulk to 3.5 hr; drop hydration to 75%",notes:"",photos:[]},
+  {id:2,date:"2025-05",testNum:2,flours:[{name:"Hard White Wheat (fresh-milled)",grams:428}],hydration1Pct:75,water1G:321,hydration2Pct:10,water2G:43,saltG:9,levain:{totalG:64,buildHr:5,components:[{name:"Hard White Wheat flour",grams:32},{name:"Ripe starter",grams:16},{name:"Water",grams:16}]},slapFoldMin:5,stretchFolds:4,sifted:"No",autolyseHr:1,bulkHr:3.5,bulkTempNote:"Warm ambient",retard:"Overnight",bakeTempF:450,bakeTimeMin:45,ovenSpring:"None – flat, no ear",crumb:"Slightly more open than T1, still tight",crust:"Dark",taste:"Good flavour",score:5,keyIssue:"Still too high hydration for structure; no ear",nextChange:"Drop hydration further to 70%",notes:"",photos:[]},
+  {id:3,date:"2025-05",testNum:3,flours:[{name:"Hard White Wheat (fresh-milled)",grams:428}],hydration1Pct:70,water1G:300,hydration2Pct:10,water2G:43,saltG:9,levain:{totalG:64,buildHr:5,components:[{name:"Hard White Wheat flour",grams:32},{name:"Ripe starter",grams:16},{name:"Water",grams:16}]},slapFoldMin:5,stretchFolds:4,sifted:"No",autolyseHr:1,bulkHr:3.5,bulkTempNote:"Warm ambient",retard:"Overnight",bakeTempF:450,bakeTimeMin:45,ovenSpring:"No ear; slightly taller than T1/T2",crumb:"More even crumb, slightly more open; best so far",crust:"Dark",taste:"Good flavour",score:6,keyIssue:"Still flat; gluten development / structure still weak",nextChange:"Test 2hr autolyse vs 1hr; track bulk temp",notes:"",photos:[]},
+];
+
+const emptyBake = () => ({
+  id: null, date: new Date().toISOString().slice(0,7), testNum: "",
+  flours: [{name:"Hard White Wheat (fresh-milled)", grams:428}],
+  hydration1Pct:70, water1G:"", hydration2Pct:10, water2G:"", saltG:9,
+  levain:{totalG:64,buildHr:5,components:[{name:"Hard White Wheat flour",grams:32},{name:"Ripe starter",grams:16},{name:"Water",grams:16}]},
+  slapFoldMin:5, stretchFolds:4, sifted:"No",
+  autolyseHr:1, bulkHr:3.5, bulkTempNote:"", retard:"Overnight",
+  bakeTempF:450, bakeTimeMin:45,
+  ovenSpring:"", crumb:"", crust:"", taste:"", score:"",
+  keyIssue:"", nextChange:"", notes:"", photos:[],
+});
+
+const GRAIN_KEY = "crumb-journal-grains-v1";
+
+const INITIAL_GRAINS = [
+  {id:1, name:"Hard White Wheat", farm:"Central Milling", type:"Whole grain berry", season:"", origin:"", tastingNotes:"Mild, slightly sweet, clean flavour. Less bitter than red wheat.", bestFor:"100% whole grain sourdough, sandwich loaves, naan", rating:8, notes:"First grain used for fresh-milling tests. Good starting point — familiar gluten behaviour, milder bran."},
+];
+
+const emptyGrain = () => ({
+  id: null, name:"", farm:"", type:"", season:"", origin:"",
+  tastingNotes:"", bestFor:"", rating:"", notes:"",
+});
+
+function loadGrains() {
+  try { const s=localStorage.getItem(GRAIN_KEY); return s?JSON.parse(s):INITIAL_GRAINS; }
+  catch(e) { return INITIAL_GRAINS; }
+}
+function saveGrains(grains) {
+  try { localStorage.setItem(GRAIN_KEY, JSON.stringify(grains)); } catch(e){console.error(e);}
+}
+
+
+function loadBakes() {
+  try { const s = localStorage.getItem(STORAGE_KEY); return s ? JSON.parse(s) : INITIAL_BAKES; }
+  catch(e) { return INITIAL_BAKES; }
+}
+function saveBakes(bakes) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(bakes)); } catch(e) { console.error(e); }
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+const totalFlourG = b => (b.flours||[]).reduce((s,f)=>s+(parseFloat(f.grams)||0),0);
+const totalHydration = b => {
+  const fl=totalFlourG(b)||1;
+  const w1=parseFloat(b.water1G)||(fl*b.hydration1Pct/100);
+  const w2=parseFloat(b.water2G)||(fl*b.hydration2Pct/100);
+  return Math.round(((w1+w2)/fl)*100);
+};
+const flourSummary = b => {
+  const fl=b.flours||[];
+  if(!fl.length) return "—";
+  if(fl.length===1) return fl[0].name;
+  const t=totalFlourG(b)||1;
+  return fl.map(f=>`${Math.round((f.grams/t)*100)}% ${f.name}`).join(" · ");
+};
+const scoreBg = s => s>=8?"#e8f0e4":s>=6?"#f5f0e0":"#f5e8e4";
+const scoreCol = s => s>=8?"#5a7a4a":s>=6?"#8a7a3a":"#8a4a3a";
+const readFile = file => new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file);});
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let state = {
+  bakes: loadBakes(),
+  grains: loadGrains(),
+  view: "list",       // list | form | compare | grains | grainForm
+  selected: null,
+  isNew: false,
+  lightbox: null,
+  selectedGrain: null,
+  isNewGrain: false,
+};
+
+function setState(patch) {
+  Object.assign(state, patch);
+  render();
+}
+
+// ── DOM helpers ───────────────────────────────────────────────────────────────
+const h = (tag, attrs={}, ...children) => {
+  const el = document.createElement(tag);
+  for (const [k,v] of Object.entries(attrs)) {
+    if (k === "className") el.className = v;
+    else if (k.startsWith("on")) el.addEventListener(k.slice(2).toLowerCase(), v);
+    else if (k === "style" && typeof v === "object") Object.assign(el.style, v);
+    else el.setAttribute(k, v);
+  }
+  const flat=[].concat.apply([],children.map(x=>Array.isArray(x)?x:[x]));for (const c of flat) {
+    if (c == null) continue;
+    el.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+  }
+  return el;
+};
+
+const inp = (attrs={}) => h("input", attrs);
+const textarea = (attrs={}, val) => { const el=h("textarea",attrs); el.value=val||""; return el; };
+
+// ── Lightbox ──────────────────────────────────────────────────────────────────
+function renderLightbox(src) {
+  const box = h("div",{className:"lightbox",onClick:()=>setState({lightbox:null})},
+    h("img",{src}),
+    h("button",{className:"lightbox-close",onClick:e=>{e.stopPropagation();setState({lightbox:null})}},"✕")
+  );
+  return box;
+}
+
+// ── Bake card ─────────────────────────────────────────────────────────────────
+function renderCard(bake) {
+  const photos = bake.photos||[];
+  const flours = bake.flours||[];
+  const flourTotal = totalFlourG(bake);
+  const hydration = totalHydration(bake);
+
+  const card = h("div",{className:"card",onClick:()=>setState({view:"form",selected:JSON.parse(JSON.stringify(bake)),isNew:false})});
+
+  // Hero photo
+  if (photos.length > 0) {
+    const img = h("img",{className:"card-hero",src:photos[0],onClick:e=>{e.stopPropagation();setState({lightbox:photos[0]});}});
+    card.appendChild(img);
+  }
+
+  const body = h("div",{className:"card-body"});
+
+  // Header row
+  const row = h("div",{className:"card-row"});
+  const left = h("div",{});
+  left.appendChild(h("span",{className:"card-test"},`Test #${bake.testNum}`));
+  left.appendChild(h("span",{className:"card-date"},bake.date));
+  row.appendChild(left);
+  if (bake.score !== "") {
+    const badge = h("div",{className:"score-badge",style:{background:scoreBg(bake.score),color:scoreCol(bake.score)}},`${bake.score}/10`);
+    row.appendChild(badge);
+  }
+  body.appendChild(row);
+
+  // Flour line
+  const flourDiv = h("div",{style:{marginBottom:"8px"}});
+  if (flours.length === 1) {
+    flourDiv.appendChild(h("div",{style:{fontFamily:'Georgia,serif',fontSize:"14px",color:"#5a4a3a"}},flours[0].name));
+  } else {
+    const blendRow = h("div",{className:"blend-tags"});
+    flours.forEach(f=>{
+      const pct = Math.round(((parseFloat(f.grams)||0)/flourTotal)*100);
+      blendRow.appendChild(h("span",{className:"tag tag-blend"},`${pct}% ${f.name}`));
+    });
+    flourDiv.appendChild(blendRow);
+  }
+  body.appendChild(flourDiv);
+
+  // Tags
+  const tags = h("div",{className:"tags"});
+  const tagList = [
+    `${flourTotal}g flour`, `${hydration}% hydration`,
+    `${bake.autolyseHr}hr autolyse`, `${bake.bulkHr}hr bulk`,
+    bake.slapFoldMin?`${bake.slapFoldMin}min slap/fold`:null,
+    bake.stretchFolds?`${bake.stretchFolds}× S&F`:null,
+    (bake.sifted&&bake.sifted!=="No")?`Sifted: ${bake.sifted}`:null,
+  ].filter(Boolean);
+  tagList.forEach(t=>tags.appendChild(h("span",{className:"tag"},t)));
+  body.appendChild(tags);
+
+  // Extra thumbs
+  if (photos.length > 1) {
+    const thumbRow = h("div",{className:"thumb-row"});
+    photos.slice(1).forEach(src=>{
+      const img = h("img",{className:"thumb",src,onClick:e=>{e.stopPropagation();setState({lightbox:src});}});
+      thumbRow.appendChild(img);
+    });
+    body.appendChild(thumbRow);
+  }
+
+  // Oven spring
+  if (bake.ovenSpring) body.appendChild(h("div",{className:"spring-note"},`↑ ${bake.ovenSpring}`));
+
+  card.appendChild(body);
+  return card;
+}
+
+// ── Field helpers for form ────────────────────────────────────────────────────
+function field(label, child, hint) {
+  const wrap = h("div",{className:"field"});
+  const lbl = h("div",{className:"field-label"},label);
+  if (hint) lbl.appendChild(h("span",{className:"field-hint"},hint));
+  wrap.appendChild(lbl);
+  wrap.appendChild(child);
+  return wrap;
+}
+function section(title, ...children) {
+  const s = h("div",{className:"section"});
+  s.appendChild(h("div",{className:"section-title"},title));
+  children.forEach(c=>s.appendChild(c));
+  return s;
+}
+function textInput(val, onChange, opts={}) {
+  const el = inp({type:opts.type||"text",value:val||"",placeholder:opts.placeholder||""});
+  if (opts.inputStyle) Object.assign(el.style, opts.inputStyle);
+  if (opts.extraClass) el.className += " "+opts.extraClass;
+  el.addEventListener("input",e=>onChange(e.target.value));
+  return el;
+}
+function numInput(val, onChange, opts={}) {
+  return textInput(val, onChange, {...opts, type:"number"});
+}
+function textareaInput(val, onChange, rows=2) {
+  const el = h("textarea",{rows});
+  el.value = val||"";
+  el.addEventListener("input",e=>onChange(e.target.value));
+  return el;
+}
+
+function renderGrainCard(grain, onClick) {
+  const card = h("div",{className:"grain-card", onClick});
+  const top = h("div",{className:"grain-card-top"});
+  top.appendChild(h("div",{className:"grain-name"}, grain.name||"Unnamed grain"));
+  if (grain.rating!=="") {
+    top.appendChild(h("div",{className:"score-badge",style:{background:scoreBg(grain.rating),color:scoreCol(grain.rating)}}, `${grain.rating}/10`));
+  }
+  card.appendChild(top);
+  if (grain.farm) card.appendChild(h("div",{className:"grain-farm"}, grain.farm));
+  const tags = h("div",{className:"tags"});
+  if (grain.type) tags.appendChild(h("span",{className:"tag"},grain.type));
+  if (grain.origin) tags.appendChild(h("span",{className:"tag"},grain.origin));
+  if (grain.season) tags.appendChild(h("span",{className:"tag"},grain.season));
+  if (tags.children.length) card.appendChild(tags);
+  if (grain.bestFor) card.appendChild(h("div",{className:"grain-best"}, `Best for: ${grain.bestFor}`));
+  if (grain.tastingNotes) card.appendChild(h("div",{className:"grain-notes grain-tasting"}, `Tasting: ${grain.tastingNotes}`));
+  return card;
+}
+
+function renderGrainForm(grain, isNew, onSave, onCancel, onDelete) {
+  let form = JSON.parse(JSON.stringify(grain));
+  const wrap = h("div",{style:{paddingBottom:"40px"}});
+
+  const fhdr = h("div",{className:"form-hdr"});
+  fhdr.appendChild(h("div",{className:"form-title"}, isNew?"New Grain":(form.name||"Edit Grain")));
+  fhdr.appendChild(h("button",{className:"close-btn",onClick:onCancel},"✕"));
+  wrap.appendChild(fhdr);
+
+  const s = (key,opts={}) => {
+    const el = inp({type:opts.type||"text", value:form[key]||"", placeholder:opts.placeholder||""});
+    el.addEventListener("input",e=>{form[key]=e.target.value;});
+    return el;
+  };
+  const ta = (key,rows=2) => {
+    const el = h("textarea",{rows}); el.value=form[key]||"";
+    el.addEventListener("input",e=>{form[key]=e.target.value;}); return el;
+  };
+
+  wrap.appendChild(section("Identity",
+    field("Grain / flour name", s("name",{placeholder:"e.g. Hard Red Spring Wheat"})),
+    h("div",{className:"grid2"},
+      field("Farm / mill", s("farm",{placeholder:"e.g. Grist & Toll"})),
+      field("Type", s("type",{placeholder:"e.g. Whole berry, High-extraction"}))
+    ),
+    h("div",{className:"grid2"},
+      field("Origin / region", s("origin",{placeholder:"e.g. Montana, USA"})),
+      field("Harvest season", s("season",{placeholder:"e.g. 2024"}))
+    )
+  ));
+
+  wrap.appendChild(section("Character",
+    field("Tasting notes", ta("tastingNotes")),
+    field("Best used for", ta("bestFor")),
+    field("Other notes", ta("notes",3))
+  ));
+
+  // Rating
+  const scoreRow = h("div",{className:"score-row"});
+  [1,2,3,4,5,6,7,8,9,10].forEach(n=>{
+    const btn = h("button",{
+      className:"score-btn"+(form.rating===n?" active":""),
+      style:form.rating===n?{background:scoreBg(n),color:scoreCol(n),borderColor:"#7a5a3a",borderWidth:"2.5px"}:{},
+      onClick:()=>{
+        form.rating=n;
+        scoreRow.querySelectorAll(".score-btn").forEach((b,i)=>{
+          const active=i+1===n;
+          b.className="score-btn"+(active?" active":"");
+          Object.assign(b.style,active?{background:scoreBg(n),color:scoreCol(n),borderColor:"#7a5a3a",borderWidth:"2.5px"}:{background:"#fdf8f3",color:"#8a7060",borderColor:"#d4c4b4",borderWidth:"1.5px"});
+        });
+      }
+    },String(n));
+    scoreRow.appendChild(btn);
+  });
+  wrap.appendChild(section("Rating", field("Overall rating (1–10)", scoreRow)));
+
+  wrap.appendChild(h("button",{className:"save-btn",onClick:()=>onSave({...form,id:form.id||Date.now()})},"Save Grain"));
+  if (!isNew) wrap.appendChild(h("button",{className:"delete-btn",onClick:()=>onDelete(grain.id)},"Delete this grain"));
+  return wrap;
+}
+
+
+// ── Bake form ─────────────────────────────────────────────────────────────────
+function renderForm(bake, isNew) {
+  // Work on a mutable copy
+  let form = JSON.parse(JSON.stringify(bake));
+  if (!form.flours) form.flours = [{name:"Hard White Wheat (fresh-milled)",grams:428}];
+  if (!form.levain) form.levain = {totalG:64,buildHr:5,components:[{name:"Hard White Wheat flour",grams:32},{name:"Ripe starter",grams:16},{name:"Water",grams:16}]};
+  if (!form.photos) form.photos = [];
+  if (form.sifted == null) form.sifted = "No";
+
+  const wrap = h("div",{style:{paddingBottom:"40px"}});
+
+  // Form header
+  const fhdr = h("div",{className:"form-hdr"});
+  fhdr.appendChild(h("div",{className:"form-title"},isNew?"New Bake":`Test #${form.testNum}`));
+  fhdr.appendChild(h("button",{className:"close-btn",onClick:()=>setState({view:"list"})},"✕"));
+  wrap.appendChild(fhdr);
+
+  // ── Photos ──
+  const photoSection = renderPhotoEditor(form.photos, photos=>{form.photos=photos; refreshPhotoSection();});
+  let photoSectionEl = section("Photos", photoSection);
+  wrap.appendChild(photoSectionEl);
+  function refreshPhotoSection() {
+    const newSection = section("Photos", renderPhotoEditor(form.photos, photos=>{form.photos=photos;refreshPhotoSection();}));
+    wrap.replaceChild(newSection, photoSectionEl);
+    photoSectionEl = newSection;
+  }
+
+  // ── Basics ──
+  const testInp = numInput(form.testNum, v=>{form.testNum=v;});
+  const dateInp = textInput(form.date, v=>{form.date=v;}, {type:"month"});
+  wrap.appendChild(section("Basics",
+    h("div",{className:"grid2"}, field("Test #",testInp), field("Date",dateInp))
+  ));
+
+  // ── Flour blend ──
+  let flourSectionEl = renderFlourSection();
+  wrap.appendChild(flourSectionEl);
+  function renderFlourSection() {
+    const rows = h("div",{});
+    form.flours.forEach((f,i)=>{
+      const row = h("div",{className:"flour-row"});
+      const nameEl = inp({type:"text",value:f.name||"",placeholder:"Grain / flour name",className:"flour-name"});
+      nameEl.addEventListener("input",e=>{form.flours[i].name=e.target.value;updateHydration();});
+      const gramsEl = inp({type:"number",value:f.grams||"",placeholder:"g",className:"flour-g"});
+      gramsEl.addEventListener("input",e=>{form.flours[i].grams=parseFloat(e.target.value)||"";updateHydration();});
+      row.appendChild(nameEl); row.appendChild(gramsEl);
+      if (form.flours.length>1) {
+        const rb = h("button",{className:"remove-btn",onClick:()=>{form.flours.splice(i,1);refreshFlourSection();}}, "×");
+        row.appendChild(rb);
+      }
+      rows.appendChild(row);
+    });
+    // blend pcts
+    const total = totalFlourG(form);
+    if (form.flours.length>1 && total>0) {
+      const btags = h("div",{className:"blend-tags"});
+      form.flours.forEach(f=>{
+        const pct=Math.round(((parseFloat(f.grams)||0)/total)*100);
+        btags.appendChild(h("span",{className:"tag tag-blend"},`${pct}% ${f.name||"?"}`));
+      });
+      btags.appendChild(h("span",{className:"tag",style:{fontWeight:"600"}},`${total}g total`));
+      rows.appendChild(btags);
+    }
+    const addBtn = h("button",{className:"add-row-btn",onClick:()=>{form.flours.push({name:"",grams:""});refreshFlourSection();}}, "+ Add flour");
+    rows.appendChild(addBtn);
+
+    // Sifted toggle
+    const toggleRow = h("div",{className:"toggle-row"});
+    ["No","Yes","Partial"].forEach(opt=>{
+      const btn = h("button",{className:"toggle-opt"+(form.sifted===opt?" active":""),onClick:()=>{form.sifted=opt;refreshFlourSection();}},opt);
+      toggleRow.appendChild(btn);
+    });
+
+    return section("Flour blend", rows, field("Sifted?",toggleRow));
+  }
+  function refreshFlourSection() {
+    const newSection = renderFlourSection();
+    wrap.replaceChild(newSection, flourSectionEl);
+    flourSectionEl = newSection;
+    updateHydration();
+  }
+
+  // ── Hydration ──
+  const w1El = numInput(form.water1G, v=>{form.water1G=v;}, {inputStyle:{background:"#f5ede4",color:"#7a5a3a"}});
+  const w2El = numInput(form.water2G, v=>{form.water2G=v;}, {inputStyle:{background:"#f5ede4",color:"#7a5a3a"}});
+  const hydBar = h("div",{className:"hydration-bar"}, h("span",{},"Total hydration"), h("strong",{},`${totalHydration(form)}%`));
+
+  const h1El = numInput(form.hydration1Pct, v=>{form.hydration1Pct=parseFloat(v)||0;updateHydration();});
+  const h2El = numInput(form.hydration2Pct, v=>{form.hydration2Pct=parseFloat(v)||0;updateHydration();});
+
+  function updateHydration() {
+    const fl=totalFlourG(form)||1;
+    form.water1G=Math.round(fl*form.hydration1Pct/100);
+    form.water2G=Math.round(fl*form.hydration2Pct/100);
+    w1El.value=form.water1G;
+    w2El.value=form.water2G;
+    hydBar.querySelector("strong").textContent=`${totalHydration(form)}%`;
+  }
+
+  const saltEl = numInput(form.saltG, v=>{form.saltG=v;});
+  wrap.appendChild(section("Hydration",
+    h("div",{className:"grid2"},
+      field("Pass 1 (%)",h1El), field("→ Water 1 (g)",w1El),
+      field("Pass 2 (%)",h2El), field("→ Water 2 (g)",w2El)
+    ),
+    hydBar, field("Salt (g)",saltEl)
+  ));
+
+  // ── Levain ──
+  let levainSectionEl = renderLevainSection();
+  wrap.appendChild(levainSectionEl);
+  function renderLevainSection() {
+    const totalEl = numInput(form.levain.totalG, v=>{form.levain.totalG=parseFloat(v)||0;refreshLevainSection();});
+    const buildEl = numInput(form.levain.buildHr, v=>{form.levain.buildHr=parseFloat(v)||0;});
+    const compRows = h("div",{});
+    form.levain.components.forEach((c,i)=>{
+      const row = h("div",{className:"flour-row"});
+      const nameEl = inp({type:"text",value:c.name||"",placeholder:"e.g. Hard white flour, Water, Ripe starter",className:"flour-name"});
+      nameEl.addEventListener("input",e=>{form.levain.components[i].name=e.target.value;});
+      const grEl = inp({type:"number",value:c.grams||"",placeholder:"g",className:"flour-g"});
+      grEl.addEventListener("input",e=>{form.levain.components[i].grams=parseFloat(e.target.value)||"";refreshLevainSection();});
+      row.appendChild(nameEl); row.appendChild(grEl);
+      if (form.levain.components.length>1) {
+        row.appendChild(h("button",{className:"remove-btn",onClick:()=>{form.levain.components.splice(i,1);refreshLevainSection();}},"×"));
+      }
+      compRows.appendChild(row);
+    });
+    const ct = form.levain.components.reduce((s,c)=>s+(parseFloat(c.grams)||0),0);
+    const ok = ct===parseFloat(form.levain.totalG);
+    if (ct>0) {
+      compRows.appendChild(h("div",{className:"levain-total-row"+(ok?"":" warn")},
+        h("span",{},`Components total`), h("strong",{},`${ct}g ${ok?"✓":"(target: "+form.levain.totalG+"g)"}`)
+      ));
+    }
+    compRows.appendChild(h("button",{className:"add-row-btn",onClick:()=>{form.levain.components.push({name:"",grams:""});refreshLevainSection();}},"+ Add component"));
+
+    return section("Levain",
+      h("div",{className:"grid2"}, field("Total levain (g)",totalEl), field("Build time (hr)",buildEl)),
+      h("div",{className:"field-label",style:{marginBottom:"8px"}},"Levain components"),
+      compRows
+    );
+  }
+  function refreshLevainSection() {
+    const ns = renderLevainSection();
+    wrap.replaceChild(ns, levainSectionEl);
+    levainSectionEl = ns;
+  }
+
+  // ── Mixing & Bulk ──
+  const sfEl = numInput(form.slapFoldMin, v=>{form.slapFoldMin=v;});
+  const stEl = numInput(form.stretchFolds, v=>{form.stretchFolds=v;});
+  const autoEl = numInput(form.autolyseHr, v=>{form.autolyseHr=v;});
+  const bulkEl = numInput(form.bulkHr, v=>{form.bulkHr=v;});
+  const tempNoteEl = textInput(form.bulkTempNote, v=>{form.bulkTempNote=v;}, {placeholder:"e.g. 76°F kitchen"});
+  const retardEl = textInput(form.retard, v=>{form.retard=v;});
+  wrap.appendChild(section("Mixing & bulk",
+    h("div",{className:"grid2"},
+      field("Slap & fold (min)",sfEl), field("Stretch & folds (#)",stEl),
+      field("Autolyse (hr)",autoEl), field("Bulk ferment (hr)",bulkEl)
+    ),
+    field("Bulk temp / ambient note",tempNoteEl),
+    field("Retard",retardEl)
+  ));
+
+  // ── Bake ──
+  const bakeTempEl = numInput(form.bakeTempF, v=>{form.bakeTempF=v;});
+  const bakeTimeEl = numInput(form.bakeTimeMin, v=>{form.bakeTimeMin=v;});
+  wrap.appendChild(section("Bake",
+    h("div",{className:"grid2"}, field("Temp (°F)",bakeTempEl), field("Time (min)",bakeTimeEl))
+  ));
+
+  // ── Results ──
+  const osEl = textInput(form.ovenSpring, v=>{form.ovenSpring=v;}, {placeholder:"Good ear, opened well"});
+  const crumbEl = textareaInput(form.crumb, v=>{form.crumb=v;});
+  const crustEl = textInput(form.crust, v=>{form.crust=v;}, {placeholder:"Dark, shatteringly crisp"});
+  const tasteEl = textareaInput(form.taste, v=>{form.taste=v;});
+
+  const scoreRow = h("div",{className:"score-row"});
+  [1,2,3,4,5,6,7,8,9,10].forEach(n=>{
+    const btn = h("button",{className:"score-btn"+(form.score===n?" active":""),style:form.score===n?{background:scoreBg(n),color:scoreCol(n),borderColor:"#7a5a3a"}:{},onClick:()=>{
+      form.score=n;
+      scoreRow.querySelectorAll(".score-btn").forEach((b,i)=>{
+        const active=i+1===n;
+        b.className="score-btn"+(active?" active":"");
+        Object.assign(b.style,active?{background:scoreBg(n),color:scoreCol(n),borderColor:"#7a5a3a",borderWidth:"2.5px"}:{background:"#fdf8f3",color:"#8a7060",borderColor:"#d4c4b4",borderWidth:"1.5px"});
+      });
+    }},String(n));
+    scoreRow.appendChild(btn);
+  });
+
+  wrap.appendChild(section("Results",
+    field("Oven spring / ear",osEl),
+    field("Crumb",crumbEl),
+    field("Crust",crustEl),
+    field("Taste",tasteEl),
+    field("Score (1–10)",scoreRow)
+  ));
+
+  // ── Learnings ──
+  const kiEl = textareaInput(form.keyIssue, v=>{form.keyIssue=v;});
+  const ncEl = textareaInput(form.nextChange, v=>{form.nextChange=v;});
+  const notesEl = textareaInput(form.notes, v=>{form.notes=v;}, 3);
+  wrap.appendChild(section("Learnings",
+    field("Key issue",kiEl),
+    field("What to change next",ncEl),
+    field("Other notes",notesEl)
+  ));
+
+  // ── Save ──
+  wrap.appendChild(h("button",{className:"save-btn",onClick:()=>{
+    const saved = {...form, id:form.id||Date.now()};
+    const bakes = state.bakes;
+    const idx = bakes.findIndex(b=>b.id===saved.id);
+    const newBakes = idx>=0 ? bakes.map((b,i)=>i===idx?saved:b) : [...bakes,saved];
+    saveBakes(newBakes);
+    setState({bakes:newBakes,view:"list"});
+  }},"Save Bake"));
+
+  if (!isNew) {
+    wrap.appendChild(h("button",{className:"delete-btn",onClick:()=>{
+      if(window.confirm("Delete this bake?")) {
+        const newBakes=state.bakes.filter(b=>b.id!==form.id);
+        saveBakes(newBakes);
+        setState({bakes:newBakes,view:"list"});
+      }
+    }},"Delete this bake"));
+  }
+
+  return wrap;
+}
+
+// ── Photo editor ──────────────────────────────────────────────────────────────
+function renderPhotoEditor(photos, onChange) {
+  const wrap = h("div",{});
+  const fileInput = inp({type:"file",accept:"image/*",multiple:"true",style:{position:"absolute",opacity:"0",pointerEvents:"none",width:"1px",height:"1px"}});
+  fileInput.addEventListener("change", async e=>{
+    const files=e.target.files; if(!files||!files.length) return;
+    const newPhotos=await Promise.all(Array.from(files).map(readFile));
+    onChange([...photos,...newPhotos]);
+    e.target.value="";
+  });
+  wrap.appendChild(fileInput);
+
+  if (photos.length>0) {
+    const grid=h("div",{className:"photo-grid"});
+    photos.forEach((src,i)=>{
+      const pw=h("div",{className:"photo-wrap"});
+      pw.appendChild(h("img",{className:"photo-thumb",src,onClick:()=>setState({lightbox:src})}));
+      pw.appendChild(h("button",{className:"photo-remove",onClick:()=>onChange(photos.filter((_,idx)=>idx!==i))},"✕"));
+      grid.appendChild(pw);
+    });
+    wrap.appendChild(grid);
+  }
+
+  const addBtn=h("button",{className:"add-photo-btn",onClick:()=>fileInput.click()},
+    h("span",{style:{fontSize:"18px"}},"📷"),
+    document.createTextNode(photos.length>0?"Add more photos":"Add photo")
+  );
+  wrap.appendChild(addBtn);
+  return wrap;
+}
+
+// ── Compare view ──────────────────────────────────────────────────────────────
+function renderCompare(bakes) {
+  const sorted=[...bakes].sort((a,b)=>a.testNum-b.testNum);
+  const wrap=h("div",{});
+
+  // Photo row
+  const photoRow=h("div",{className:"compare-photos"});
+  sorted.forEach(b=>{
+    const pw=h("div",{className:"compare-photo-wrap"});
+    if(b.photos&&b.photos[0]) {
+      pw.appendChild(h("img",{className:"compare-photo",src:b.photos[0],onClick:()=>setState({lightbox:b.photos[0]})}));
+    } else {
+      pw.appendChild(h("div",{className:"compare-placeholder"},"🍞"));
+    }
+    pw.appendChild(h("div",{className:"compare-label"},`T${b.testNum}`));
+    photoRow.appendChild(pw);
+  });
+  wrap.appendChild(photoRow);
+
+  const vars=[
+    {label:"Flour blend",fn:b=>flourSummary(b)},
+    {label:"Sifted",fn:b=>b.sifted||"No"},
+    {label:"Total flour",fn:b=>`${totalFlourG(b)}g`},
+    {label:"Hydration",fn:b=>`${totalHydration(b)}%`},
+    {label:"Autolyse",fn:b=>`${b.autolyseHr}hr`},
+    {label:"Slap & fold",fn:b=>b.slapFoldMin?`${b.slapFoldMin} min`:"—"},
+    {label:"Stretch & folds",fn:b=>b.stretchFolds?`${b.stretchFolds}×`:"—"},
+    {label:"Bulk ferment",fn:b=>`${b.bulkHr}hr`},
+    {label:"Bulk temp",fn:b=>b.bulkTempNote||"—"},
+    {label:"Levain",fn:b=>b.levain?`${b.levain.totalG}g / ${b.levain.buildHr}hr`:"—"},
+    {label:"Score",fn:b=>b.score!==""?`${b.score}/10`:"—"},
+    {label:"Oven spring",fn:b=>b.ovenSpring||"—"},
+  ];
+
+  const tableWrap=h("div",{style:{overflowX:"auto"}});
+  const table=h("table",{className:"compare-table"});
+  const thead=h("thead",{});
+  const hrow=h("tr",{});
+  hrow.appendChild(h("th",{style:{textAlign:"left"}},"Variable"));
+  sorted.forEach(b=>hrow.appendChild(h("th",{className:"test-col"},`T${b.testNum}`)));
+  thead.appendChild(hrow);
+  table.appendChild(thead);
+
+  const tbody=h("tbody",{});
+  vars.forEach((v,i)=>{
+    const tr=h("tr",{style:{background:i%2===0?"#fdf8f3":"#f7f0e8"}});
+    tr.appendChild(h("td",{className:"var-col"},v.label));
+    sorted.forEach(b=>tr.appendChild(h("td",{className:"val-col"},v.fn(b))));
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  tableWrap.appendChild(table);
+  wrap.appendChild(tableWrap);
+  return wrap;
+}
+
+// ── Export / Import ───────────────────────────────────────────────────────────
+function exportBakes() {
+  const data={bakes:state.bakes,grains:state.grains};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url; a.download=`crumb-journal-${new Date().toISOString().slice(0,10)}.json`; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── Main render ───────────────────────────────────────────────────────────────
+function render() {
+  const app = document.getElementById("app");
+  app.innerHTML="";
+
+  // Lightbox overlay
+  if (state.lightbox) { app.appendChild(renderLightbox(state.lightbox)); }
+
+  const container = h("div",{id:"main"});
+
+  // Header
+  const hdr=h("div",{className:"hdr"});
+  hdr.appendChild(h("div",{className:"hdr-title"},"🌾 Crumb Journal"));
+  hdr.appendChild(h("div",{className:"hdr-sub"},"Fresh-milled sourdough log"));
+  const nav=h("div",{className:"hdr-nav"});
+
+  // Import input (hidden)
+  const importInput=inp({type:"file",accept:".json",style:{position:"absolute",opacity:"0",pointerEvents:"none",width:"1px",height:"1px"}});
+  importInput.addEventListener("change",e=>{
+    const file=e.target.files[0]; if(!file) return;
+    const r=new FileReader();
+    r.onload=()=>{
+      try{
+        const d=JSON.parse(r.result);
+        if(d.bakes&&Array.isArray(d.bakes)){
+          saveBakes(d.bakes);
+          const grains=d.grains&&Array.isArray(d.grains)?d.grains:state.grains;
+          saveGrains(grains);
+          setState({bakes:d.bakes,grains});
+          alert(`Imported ${d.bakes.length} bakes and ${grains.length} grains.`);
+        } else if(Array.isArray(d)){
+          // legacy format — bakes only
+          saveBakes(d); setState({bakes:d});
+          alert(`Imported ${d.length} bakes.`);
+        } else alert("Invalid file.");
+      }catch(e){alert("Could not read file.");}
+    };
+    r.readAsText(file); e.target.value="";
+  });
+  nav.appendChild(importInput);
+
+  [["list","All Bakes"],["compare","Compare"],["grains","Grains"]].forEach(([v,label])=>{
+    nav.appendChild(h("button",{className:"nav-btn"+(state.view===v||( v==="grains"&&state.view==="grainForm")?" active":""),onClick:()=>setState({view:v})},label));
+  });
+  nav.appendChild(h("button",{className:"nav-btn",onClick:exportBakes},"⬇ Export"));
+  nav.appendChild(h("button",{className:"nav-btn",onClick:()=>importInput.click()},"⬆ Import"));
+  hdr.appendChild(nav);
+  container.appendChild(hdr);
+
+  // Content
+  const content=h("div",{className:"content"});
+
+  if (state.view==="list") {
+    const listHdr=h("div",{className:"list-hdr"});
+    listHdr.appendChild(h("div",{className:"list-count"},`${state.bakes.length} bake${state.bakes.length!==1?"s":""} logged`));
+    const nextNum=Math.max(0,...state.bakes.map(b=>Number(b.testNum)||0))+1;
+    listHdr.appendChild(h("button",{className:"new-bake-btn",onClick:()=>{
+      const nb=emptyBake(); nb.testNum=nextNum;
+      setState({view:"form",selected:nb,isNew:true});
+    }},"+ New Bake"));
+    content.appendChild(listHdr);
+    [...state.bakes].sort((a,b)=>b.testNum-a.testNum).forEach(bake=>content.appendChild(renderCard(bake)));
+  }
+  else if (state.view==="compare") {
+    content.appendChild(h("div",{style:{fontFamily:'Georgia,serif',fontSize:"17px",color:"#3a2a1a",marginBottom:"16px"}},"Side-by-side comparison"));
+    content.appendChild(renderCompare(state.bakes));
+  }
+  else if (state.view==="form" && state.selected) {
+    content.appendChild(renderForm(state.selected, state.isNew));
+  }
+
+  else if (state.view==="grains") {
+    const hdr2=h("div",{className:"list-hdr"});
+    hdr2.appendChild(h("div",{className:"list-count"},`${state.grains.length} grain${state.grains.length!==1?"s":""} logged`));
+    hdr2.appendChild(h("button",{className:"new-bake-btn",onClick:()=>setState({view:"grainForm",selectedGrain:emptyGrain(),isNewGrain:true})},"+ New Grain"));
+    content.appendChild(hdr2);
+    if (state.grains.length===0) {
+      content.appendChild(h("div",{style:{color:"#8a7060",fontStyle:"italic",fontSize:"14px",textAlign:"center",marginTop:"40px"}},"No grains logged yet. Tap + New Grain to start your library."));
+    }
+    [...state.grains].sort((a,b)=>(a.name||"").localeCompare(b.name||"")).forEach(grain=>{
+      content.appendChild(renderGrainCard(grain, ()=>setState({view:"grainForm",selectedGrain:JSON.parse(JSON.stringify(grain)),isNewGrain:false})));
+    });
+  }
+  else if (state.view==="grainForm" && state.selectedGrain) {
+    content.appendChild(renderGrainForm(
+      state.selectedGrain,
+      state.isNewGrain,
+      (grain)=>{
+        const grains=state.grains;
+        const idx=grains.findIndex(g=>g.id===grain.id);
+        const newGrains=idx>=0?grains.map((g,i)=>i===idx?grain:g):[...grains,grain];
+        saveGrains(newGrains);
+        setState({grains:newGrains,view:"grains"});
+      },
+      ()=>setState({view:"grains"}),
+      (id)=>{
+        if(window.confirm("Delete this grain?")) {
+          const newGrains=state.grains.filter(g=>g.id!==id);
+          saveGrains(newGrains);
+          setState({grains:newGrains,view:"grains"});
+        }
+      }
+    ));
+  }
+}
+
+try {
+  render();
+} catch(e) {
+  document.getElementById("app").innerHTML =
+    '<div style="padding:30px;font-family:monospace;font-size:13px;color:#c00;background:#fff;margin:20px;border-radius:8px;border:1px solid #fcc">' +
+    '<strong>Error:</strong><br>' + e.message + '<br><br>' +
+    '<pre style="white-space:pre-wrap;font-size:11px">' + (e.stack||"") + '</pre></div>';
+}
+</script>
+</body>
+</html>
