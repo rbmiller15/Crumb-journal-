@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Crumb Journal">
+<title>Crumb Journal</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#f5ede2;font-family:Georgia,serif;-webkit-text-size-adjust:100%}
+#app{max-width:480px;margin:0 auto;min-height:100vh;background:#faf4ee}
+.hdr{background:#3a2a1a;padding:20px 16px 16px;position:sticky;top:0;z-index:100}
+.hdr-title{font-size:22px;font-weight:bold;color:#f5e8d4}
+.hdr-sub{font-size:11px;color:#8a7060;letter-spacing:.1em;text-transform:uppercase;margin-top:2px}
+.hdr-nav{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+.nav-btn{padding:6px 12px;border-radius:20px;border:1.5px solid #5a4a3a;background:transparent;color:#c8a87a;font-family:Georgia,serif;font-size:12px;cursor:pointer;text-transform:uppercase}
+.nav-btn.active{background:#c8a87a;color:#3a2a1a;border-color:#c8a87a}
+.content{padding:16px}
+.list-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.list-count{font-size:16px;color:#3a2a1a;font-weight:bold}
+.new-btn{background:#5a3a1a;color:#f5e8d4;border:none;border-radius:20px;padding:8px 16px;font-family:Georgia,serif;font-size:13px;cursor:pointer}
+.card{background:#fdf8f3;border:1.5px solid #e0d0c0;border-radius:12px;margin-bottom:10px;cursor:pointer;overflow:hidden;box-shadow:0 1px 3px rgba(100,60,20,.07)}
+.card-img{width:100%;height:180px;object-fit:cover;display:block;border-bottom:1px solid #e0d0c0}
+.card-body{padding:12px 14px}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.card-title{font-size:17px;font-weight:bold;color:#3a2a1a}
+.card-date{font-size:12px;color:#8a7060;margin-left:8px}
+.badge{border-radius:20px;padding:3px 10px;font-weight:bold;font-size:14px}
+.tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.tag{background:#f0e8dc;color:#7a5a3a;border-radius:5px;padding:2px 8px;font-size:11px}
+.card-note{font-size:12px;color:#8a7060;margin-top:6px;font-style:italic}
+.thumbs{display:flex;gap:5px;margin-top:8px;overflow-x:auto}
+.thumb{width:60px;height:60px;object-fit:cover;border-radius:7px;border:1px solid #e0d0c0;flex-shrink:0;cursor:pointer}
+.form-wrap{padding-bottom:40px}
+.form-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.form-title{font-size:20px;font-weight:bold;color:#3a2a1a}
+.close-btn{background:none;border:none;font-size:22px;color:#8a7060;cursor:pointer;padding:4px}
+.sec{margin-bottom:18px}
+.sec-title{font-size:12px;font-weight:bold;letter-spacing:.1em;text-transform:uppercase;color:#7a5a3a;border-bottom:1px solid #e0d0c0;padding-bottom:5px;margin-bottom:12px}
+.fld{margin-bottom:12px}
+.fld-lbl{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:#8a7060;margin-bottom:3px}
+input,textarea,select{width:100%;box-sizing:border-box;padding:8px 10px;border:1.5px solid #d4c4b4;border-radius:7px;background:#fdf8f3;font-family:Georgia,serif;font-size:14px;color:#3a2a1a;outline:none;-webkit-appearance:none;appearance:none}
+textarea{resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hydbar{background:#f0e8dc;border-radius:8px;padding:9px 12px;font-size:14px;color:#5a3a1a;margin-bottom:4px;display:flex;justify-content:space-between}
+.row-wrap{display:flex;gap:7px;align-items:center;margin-bottom:7px}
+.row-wrap input{flex:1}
+.row-wrap input.grams{width:65px;flex:none;text-align:right}
+.remove-btn{background:none;border:none;color:#c08070;font-size:20px;cursor:pointer;padding:0 2px;flex-shrink:0;line-height:1}
+.add-row-btn{display:flex;align-items:center;gap:5px;padding:6px 10px;border:1px dashed #c4a88a;border-radius:7px;background:transparent;color:#8a6a4a;font-family:Georgia,serif;font-size:12px;cursor:pointer;margin-top:4px}
+.toggle-row{display:flex;gap:7px;margin-top:2px}
+.tog{padding:6px 16px;border-radius:20px;cursor:pointer;border:1.5px solid #d4c4b4;background:#fdf8f3;color:#8a7060;font-family:Georgia,serif;font-size:13px}
+.tog.active{border-color:#7a5a3a;background:#f0e8dc;color:#5a3a1a}
+.score-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.score-btn{width:36px;height:36px;border-radius:50%;border:1.5px solid #d4c4b4;background:#fdf8f3;color:#8a7060;font-family:Georgia,serif;font-weight:bold;font-size:13px;cursor:pointer}
+.score-btn.active{border-width:2.5px;border-color:#7a5a3a}
+.levain-check{border-radius:7px;padding:6px 10px;font-size:12px;margin-bottom:5px;display:flex;justify-content:space-between}
+.levain-ok{background:#e8f0e4;color:#4a6a3a}
+.levain-warn{background:#fdf0e0;color:#8a5a20}
+.photo-grid{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
+.photo-wrap{position:relative}
+.photo-edit-thumb{width:85px;height:85px;object-fit:cover;border-radius:9px;border:1.5px solid #d4c4b4;cursor:pointer;display:block}
+.photo-x{position:absolute;top:-6px;right:-6px;background:#5a3a1a;border:none;color:#fff;font-size:10px;border-radius:50%;width:20px;height:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+.add-photo-btn{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;padding:10px;border:1.5px dashed #c4a88a;border-radius:9px;background:#fdf8f3;color:#7a5a3a;font-family:Georgia,serif;font-size:13px;cursor:pointer}
+.save-btn{width:100%;padding:13px;background:#5a3a1a;color:#fdf8f3;border:none;border-radius:10px;font-family:Georgia,serif;font-size:16px;font-weight:bold;cursor:pointer;margin-bottom:10px}
+.del-btn{width:100%;padding:10px;background:none;color:#a05a4a;border:1.5px solid #d4b4a4;border-radius:10px;font-family:Georgia,serif;font-size:14px;cursor:pointer}
+.lightbox{position:fixed;inset:0;background:rgba(10,5,2,.94);z-index:2000;display:flex;align-items:center;justify-content:center}
+.lightbox img{max-width:95vw;max-height:88vh;border-radius:9px;object-fit:contain}
+.lb-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.18);border:none;color:#fff;font-size:20px;border-radius:50%;width:38px;height:38px;cursor:pointer}
+.compare-photos{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto}
+.cp-wrap{flex-shrink:0;text-align:center}
+.cp-img{width:76px;height:76px;object-fit:cover;border-radius:9px;border:1.5px solid #e0d0c0;cursor:pointer;display:block}
+.cp-ph{width:76px;height:76px;border-radius:9px;background:#f0e8dc;display:flex;align-items:center;justify-content:center;font-size:24px;border:1.5px solid #e0d0c0}
+.cp-lbl{font-size:11px;color:#7a5a3a;margin-top:3px;font-weight:bold}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{padding:7px 7px;color:#8a7060;border-bottom:2px solid #e0d0c0;text-transform:uppercase;letter-spacing:.05em;font-size:10px;text-align:left;white-space:nowrap}
+.tbl th.tc{text-align:center;font-size:12px;color:#3a2a1a;letter-spacing:0;text-transform:none}
+.tbl td{padding:8px 7px;border-bottom:1px solid #ede0d4;word-break:break-word;max-width:110px}
+.tbl td.tc{text-align:center;color:#3a2a1a}
+.tbl tr:nth-child(even){background:#f7f0e8}
+.tbl tr:nth-child(odd){background:#fdf8f3}
+.grain-card{background:#fdf8f3;border:1.5px solid #e0d0c0;border-radius:12px;margin-bottom:10px;cursor:pointer;padding:12px 14px;box-shadow:0 1px 3px rgba(100,60,20,.07)}
+.grain-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
+.grain-name{font-size:17px;font-weight:bold;color:#3a2a1a}
+.grain-farm{font-size:12px;color:#8a7060;font-style:italic;margin-bottom:6px}
+.grain-best{font-size:12px;color:#5a4a3a;margin-top:5px}
+.grain-tasting{font-size:12px;color:#6a5a4a;margin-top:3px;line-height:1.5}
+.empty-state{color:#8a7060;font-style:italic;font-size:13px;text-align:center;margin-top:40px}
+.blend-tags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:7px}
+.blend-tag{background:#efe5d5;color:#5a3a1a;border-radius:5px;padding:2px 8px;font-size:11px}
+.total-tag{background:#e8e0d4;color:#5a4a3a;border-radius:5px;padding:2px 8px;font-size:11px;font-weight:bold}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// ── Compatibility shims ───────────────────────────────────────────────────────
+if (!Array.prototype.flat) {
+  Array.prototype.flat = function() {
+    var result = [];
+    for (var i = 0; i < this.length; i++) {
+      if (Array.isArray(this[i])) {
+        for (var j = 0; j < this[i].length; j++) result.push(this[i][j]);
+      } else { result.push(this[i]); }
+    }
+    return result;
+  };
+}
+
+// ── Storage keys ──────────────────────────────────────────────────────────────
+var BAKE_KEY = "cj-bakes-v1";
+var GRAIN_KEY = "cj-grains-v1";
+
+// ── Initial data ──────────────────────────────────────────────────────────────
+var INIT_BAKES = [
+  {id:1,date:"2025-05",testNum:1,flours:[{name:"Hard White Wheat (fresh-milled)",grams:428}],hydration1Pct:80,water1G:342,hydration2Pct:10,water2G:43,saltG:9,levain:{totalG:64,buildHr:5,components:[{name:"Hard White Wheat flour",grams:32},{name:"Ripe starter",grams:16},{name:"Water",grams:16}]},slapFoldMin:5,stretchFolds:4,sifted:"No",autolyseHr:1,bulkHr:4.5,bulkTempNote:"Warm ambient (LA summer)",retard:"Overnight",bakeTempF:450,bakeTimeMin:45,ovenSpring:"None - very flat",crumb:"Dense, tight crumb",crust:"Dark, hard",taste:"Good flavour",score:4,keyIssue:"Overfermented bulk (4.5 hr too long at warm temp)",nextChange:"Reduce bulk to 3.5 hr; drop hydration to 75%",notes:"",photos:[]},
+  {id:2,date:"2025-05",testNum:2,flours:[{name:"Hard White Wheat (fresh-milled)",grams:428}],hydration1Pct:75,water1G:321,hydration2Pct:10,water2G:43,saltG:9,levain:{totalG:64,buildHr:5,components:[{name:"Hard White Wheat flour",grams:32},{name:"Ripe starter",grams:16},{name:"Water",grams:16}]},slapFoldMin:5,stretchFolds:4,sifted:"No",autolyseHr:1,bulkHr:3.5,bulkTempNote:"Warm ambient",retard:"Overnight",bakeTempF:450,bakeTimeMin:45,ovenSpring:"None - flat, no ear",crumb:"Slightly more open than T1, still tight",crust:"Dark",taste:"Good flavour",score:5,keyIssue:"Still too high hydration for structure; no ear",nextChange:"Drop hydration further to 70%",notes:"",photos:[]},
+  {id:3,date:"2025-05",testNum:3,flours:[{name:"Hard White Wheat (fresh-milled)",grams:428}],hydration1Pct:70,water1G:300,hydration2Pct:10,water2G:43,saltG:9,levain:{totalG:64,buildHr:5,components:[{name:"Hard White Wheat flour",grams:32},{name:"Ripe starter",grams:16},{name:"Water",grams:16}]},slapFoldMin:5,stretchFolds:4,sifted:"No",autolyseHr:1,bulkHr:3.5,bulkTempNote:"Warm ambient",retard:"Overnight",bakeTempF:450,bakeTimeMin:45,ovenSpring:"No ear; slightly taller than T1/T2",crumb:"More even crumb, slightly more open; best so far",crust:"Dark",taste:"Good flavour",score:6,keyIssue:"Still flat; gluten development / structure still weak",nextChange:"Test 2hr autolyse vs 1hr; track bulk temp",notes:"",photos:[]}
+];
+
+var INIT_GRAINS = [
+  {id:1,name:"Hard White Wheat",farm:"Central Milling",type:"Whole grain berry",season:"",origin:"",tastingNotes:"Mild, slightly sweet, clean flavour.",bestFor:"100% whole grain sourdough, sandwich loaves",rating:8,notes:"First grain used for fresh-milling tests."}
+];
+
+// ── Storage helpers ───────────────────────────────────────────────────────────
+function loadBakes() {
+  try {
+    var s = localStorage.getItem(BAKE_KEY);
+    return s ? JSON.parse(s) : INIT_BAKES;
+  } catch(e) { return INIT_BAKES; }
+}
+function saveBakes(bakes) {
+  try { localStorage.setItem(BAKE_KEY, JSON.stringify(bakes)); } catch(e) {}
+}
+function loadGrains() {
+  try {
+    var s = localStorage.getItem(GRAIN_KEY);
+    return s ? JSON.parse(s) : INIT_GRAINS;
+  } catch(e) { return INIT_GRAINS; }
+}
+function saveGrains(grains) {
+  try { localStorage.setItem(GRAIN_KEY, JSON.stringify(grains)); } catch(e) {}
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function totalFlourG(b) {
+  var t = 0;
+  var fl = b.flours || [];
+  for (var i = 0; i < fl.length; i++) t += parseFloat(fl[i].grams) || 0;
+  return t;
+}
+function totalHydration(b) {
+  var fl = totalFlourG(b) || 1;
+  var w1 = parseFloat(b.water1G) || (fl * b.hydration1Pct / 100);
+  var w2 = parseFloat(b.water2G) || (fl * b.hydration2Pct / 100);
+  return Math.round(((w1 + w2) / fl) * 100);
+}
+function flourSummary(b) {
+  var fl = b.flours || [];
+  if (!fl.length) return "-";
+  if (fl.length === 1) return fl[0].name;
+  var t = totalFlourG(b) || 1;
+  var parts = [];
+  for (var i = 0; i < fl.length; i++) {
+    parts.push(Math.round((fl[i].grams / t) * 100) + "% " + fl[i].name);
+  }
+  return parts.join(" / ");
+}
+function scoreBg(s) { return s >= 8 ? "#e8f0e4" : s >= 6 ? "#f5f0e0" : "#f5e8e4"; }
+function scoreCol(s) { return s >= 8 ? "#5a7a4a" : s >= 6 ? "#8a7a3a" : "#8a4a3a"; }
+function readFileAsBase64(file, cb) {
+  var r = new FileReader();
+  r.onload = function() { cb(r.result); };
+  r.readAsDataURL(file);
+}
+function el(tag, cls, text) {
+  var e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+}
+function inp(placeholder, value, type) {
+  var e = document.createElement("input");
+  e.type = type || "text";
+  e.placeholder = placeholder || "";
+  e.value = value != null ? value : "";
+  return e;
+}
+function deepCopy(obj) { return JSON.parse(JSON.stringify(obj)); }
+
+// ── State ─────────────────────────────────────────────────────────────────────
+var state = {
+  bakes: loadBakes(),
+  grains: loadGrains(),
+  view: "list",
+  selected: null,
+  isNew: false,
+  selectedGrain: null,
+  isNewGrain: false,
+  lightbox: null
+};
+
+function setState(patch) {
+  var keys = Object.keys(patch);
+  for (var i = 0; i < keys.length; i++) state[keys[i]] = patch[keys[i]];
+  render();
+}
+
+// ── Lightbox ──────────────────────────────────────────────────────────────────
+function renderLightbox(src) {
+  var box = el("div", "lightbox");
+  var img = document.createElement("img");
+  img.src = src;
+  box.appendChild(img);
+  var btn = el("button", "lb-close", "✕");
+  btn.onclick = function() { setState({lightbox: null}); };
+  box.appendChild(btn);
+  box.onclick = function(ev) { if (ev.target === box) setState({lightbox: null}); };
+  return box;
+}
+
+// ── Bake card ─────────────────────────────────────────────────────────────────
+function renderBakeCard(bake) {
+  var card = el("div", "card");
+  var photos = bake.photos || [];
+  var flours = bake.flours || [];
+  var flourTotal = totalFlourG(bake);
+  var hydration = totalHydration(bake);
+
+  if (photos.length > 0) {
+    var hero = document.createElement("img");
+    hero.className = "card-img";
+    hero.src = photos[0];
+    hero.onclick = function(ev) { ev.stopPropagation(); setState({lightbox: photos[0]}); };
+    card.appendChild(hero);
+  }
+
+  var body = el("div", "card-body");
+
+  var top = el("div", "card-top");
+  var left = el("div");
+  var titleSpan = el("span", "card-title", "Test #" + bake.testNum);
+  var dateSpan = el("span", "card-date", bake.date);
+  left.appendChild(titleSpan);
+  left.appendChild(dateSpan);
+  top.appendChild(left);
+  if (bake.score !== "") {
+    var badge = el("span", "badge", bake.score + "/10");
+    badge.style.background = scoreBg(bake.score);
+    badge.style.color = scoreCol(bake.score);
+    top.appendChild(badge);
+  }
+  body.appendChild(top);
+
+  if (flours.length === 1) {
+    var fn = el("div", null, flours[0].name);
+    fn.style.cssText = "font-size:13px;color:#5a4a3a;margin-bottom:6px";
+    body.appendChild(fn);
+  } else {
+    var bt = el("div", "blend-tags");
+    for (var i = 0; i < flours.length; i++) {
+      var pct = Math.round(((parseFloat(flours[i].grams) || 0) / flourTotal) * 100);
+      bt.appendChild(el("span", "blend-tag", pct + "% " + flours[i].name));
+    }
+    body.appendChild(bt);
+  }
+
+  var tags = el("div", "tags");
+  var tagList = [
+    flourTotal + "g flour",
+    hydration + "% hydration",
+    bake.autolyseHr + "hr autolyse",
+    bake.bulkHr + "hr bulk"
+  ];
+  if (bake.slapFoldMin) tagList.push(bake.slapFoldMin + "min slap/fold");
+  if (bake.stretchFolds) tagList.push(bake.stretchFolds + "x S&F");
+  if (bake.sifted && bake.sifted !== "No") tagList.push("Sifted: " + bake.sifted);
+  for (var t = 0; t < tagList.length; t++) tags.appendChild(el("span", "tag", tagList[t]));
+  body.appendChild(tags);
+
+  if (photos.length > 1) {
+    var thumbs = el("div", "thumbs");
+    for (var p = 1; p < photos.length; p++) {
+      (function(src) {
+        var th = document.createElement("img");
+        th.className = "thumb";
+        th.src = src;
+        th.onclick = function(ev) { ev.stopPropagation(); setState({lightbox: src}); };
+        thumbs.appendChild(th);
+      })(photos[p]);
+    }
+    body.appendChild(thumbs);
+  }
+
+  if (bake.ovenSpring) body.appendChild(el("div", "card-note", "↑ " + bake.ovenSpring));
+  card.appendChild(body);
+
+  card.onclick = function() { setState({view:"form", selected: deepCopy(bake), isNew: false}); };
+  return card;
+}
+
+// ── Form helpers ──────────────────────────────────────────────────────────────
+function fld(label, child) {
+  var w = el("div", "fld");
+  w.appendChild(el("div", "fld-lbl", label));
+  w.appendChild(child);
+  return w;
+}
+function sec(title) {
+  var s = el("div", "sec");
+  s.appendChild(el("div", "sec-title", title));
+  for (var i = 1; i < arguments.length; i++) s.appendChild(arguments[i]);
+  return s;
+}
+function grid2() {
+  var g = el("div", "grid2");
+  for (var i = 0; i < arguments.length; i++) g.appendChild(arguments[i]);
+  return g;
+}
+
+// ── Flour editor ──────────────────────────────────────────────────────────────
+function renderFlourEditor(form, onUpdate) {
+  var wrap = el("div");
+
+  function rebuild() {
+    wrap.innerHTML = "";
+    var flours = form.flours;
+    var total = totalFlourG(form);
+
+    for (var i = 0; i < flours.length; i++) {
+      (function(idx) {
+        var row = el("div", "row-wrap");
+        var nameEl = inp("Grain / flour name", flours[idx].name);
+        nameEl.oninput = function() { form.flours[idx].name = this.value; onUpdate(); };
+        var gramsEl = inp("g", flours[idx].grams, "number");
+        gramsEl.className = "grams";
+        gramsEl.oninput = function() { form.flours[idx].grams = parseFloat(this.value) || ""; onUpdate(); };
+        row.appendChild(nameEl);
+        row.appendChild(gramsEl);
+        if (flours.length > 1) {
+          var rb = el("button", "remove-btn", "×");
+          rb.onclick = function() { form.flours.splice(idx, 1); rebuild(); onUpdate(); };
+          row.appendChild(rb);
+        }
+        wrap.appendChild(row);
+      })(i);
+    }
+
+    if (flours.length > 1 && total > 0) {
+      var bt = el("div", "blend-tags");
+      for (var j = 0; j < flours.length; j++) {
+        var pct = Math.round(((parseFloat(flours[j].grams) || 0) / total) * 100);
+        bt.appendChild(el("span", "blend-tag", pct + "% " + (flours[j].name || "?")));
+      }
+      bt.appendChild(el("span", "total-tag", total + "g total"));
+      wrap.appendChild(bt);
+    }
+
+    var addBtn = el("button", "add-row-btn", "+ Add flour");
+    addBtn.onclick = function() { form.flours.push({name:"",grams:""}); rebuild(); };
+    wrap.appendChild(addBtn);
+  }
+
+  rebuild();
+  return wrap;
+}
+
+// ── Levain editor ─────────────────────────────────────────────────────────────
+function renderLevainEditor(form, onUpdate) {
+  var wrap = el("div");
+
+  function rebuild() {
+    wrap.innerHTML = "";
+    var levain = form.levain;
+
+    var totalEl = inp("g", levain.totalG, "number");
+    totalEl.oninput = function() { form.levain.totalG = parseFloat(this.value) || 0; rebuild(); };
+    var buildEl = inp("hr", levain.buildHr, "number");
+    buildEl.oninput = function() { form.levain.buildHr = parseFloat(this.value) || 0; };
+    wrap.appendChild(grid2(fld("Total levain (g)", totalEl), fld("Build time (hr)", buildEl)));
+
+    var compLabel = el("div", "fld-lbl", "Levain components");
+    compLabel.style.marginBottom = "6px";
+    wrap.appendChild(compLabel);
+
+    var comps = levain.components;
+    for (var i = 0; i < comps.length; i++) {
+      (function(idx) {
+        var row = el("div", "row-wrap");
+        var nameEl = inp("e.g. Hard white flour, Water, Ripe starter", comps[idx].name);
+        nameEl.oninput = function() { form.levain.components[idx].name = this.value; };
+        var gramsEl = inp("g", comps[idx].grams, "number");
+        gramsEl.className = "grams";
+        gramsEl.oninput = function() { form.levain.components[idx].grams = parseFloat(this.value) || ""; rebuild(); };
+        row.appendChild(nameEl);
+        row.appendChild(gramsEl);
+        if (comps.length > 1) {
+          var rb = el("button", "remove-btn", "×");
+          rb.onclick = function() { form.levain.components.splice(idx, 1); rebuild(); };
+          row.appendChild(rb);
+        }
+        wrap.appendChild(row);
+      })(i);
+    }
+
+    var ct = 0;
+    for (var j = 0; j < comps.length; j++) ct += parseFloat(comps[j].grams) || 0;
+    if (ct > 0) {
+      var ok = ct === parseFloat(levain.totalG);
+      var check = el("div", "levain-check " + (ok ? "levain-ok" : "levain-warn"));
+      check.innerHTML = "<span>Components total</span><strong>" + ct + "g " + (ok ? "✓" : "(target: " + levain.totalG + "g)") + "</strong>";
+      wrap.appendChild(check);
+    }
+
+    var addBtn = el("button", "add-row-btn", "+ Add component");
+    addBtn.onclick = function() { form.levain.components.push({name:"",grams:""}); rebuild(); };
+    wrap.appendChild(addBtn);
+  }
+
+  rebuild();
+  return wrap;
+}
+
+// ── Photo editor ──────────────────────────────────────────────────────────────
+function renderPhotoEditor(form) {
+  var wrap = el("div");
+  var fileInp = document.createElement("input");
+  fileInp.type = "file";
+  
+  fileInp.multiple = true;
+  fileInp.style.cssText = "position:absolute;opacity:0;pointer-events:none;width:1px;height:1px";
+  wrap.appendChild(fileInp);
+
+  function rebuild() {
+    while (wrap.children.length > 1) wrap.removeChild(wrap.lastChild);
+    var photos = form.photos || [];
+
+    if (photos.length > 0) {
+      var grid = el("div", "photo-grid");
+      for (var i = 0; i < photos.length; i++) {
+        (function(idx, src) {
+          var pw = el("div", "photo-wrap");
+          var img = document.createElement("img");
+          img.className = "photo-edit-thumb";
+          img.src = src;
+          img.onclick = function() { setState({lightbox: src}); };
+          var xbtn = el("button", "photo-x", "✕");
+          xbtn.onclick = function() { form.photos.splice(idx, 1); rebuild(); };
+          pw.appendChild(img);
+          pw.appendChild(xbtn);
+          grid.appendChild(pw);
+        })(i, photos[i]);
+      }
+      wrap.appendChild(grid);
+    }
+
+    var addBtn = el("button", "add-photo-btn");
+    addBtn.innerHTML = "<span style='font-size:17px'>📷</span> " + (photos.length > 0 ? "Add more photos" : "Add photo");
+    addBtn.onclick = function() { fileInp.click(); };
+    wrap.appendChild(addBtn);
+  }
+
+  fileInp.onchange = function() {
+    var files = fileInp.files;
+    if (!files || !files.length) return;
+    var loaded = 0;
+    var newPhotos = [];
+    for (var i = 0; i < files.length; i++) {
+      (function(file) {
+        readFileAsBase64(file, function(data) {
+          newPhotos.push(data);
+          loaded++;
+          if (loaded === files.length) {
+            for (var j = 0; j < newPhotos.length; j++) form.photos.push(newPhotos[j]);
+            rebuild();
+          }
+        });
+      })(files[i]);
+    }
+    fileInp.value = "";
+  };
+
+  rebuild();
+  return wrap;
+}
+
+// ── Score picker ──────────────────────────────────────────────────────────────
+function renderScorePicker(form, key) {
+  var row = el("div", "score-row");
+  for (var n = 1; n <= 10; n++) {
+    (function(num) {
+      var btn = el("button", "score-btn" + (form[key] === num ? " active" : ""), String(num));
+      if (form[key] === num) { btn.style.background = scoreBg(num); btn.style.color = scoreCol(num); btn.style.borderColor = "#7a5a3a"; }
+      btn.onclick = function() {
+        form[key] = num;
+        var btns = row.querySelectorAll(".score-btn");
+        for (var i = 0; i < btns.length; i++) {
+          var active = (i + 1) === num;
+          btns[i].className = "score-btn" + (active ? " active" : "");
+          btns[i].style.background = active ? scoreBg(num) : "#fdf8f3";
+          btns[i].style.color = active ? scoreCol(num) : "#8a7060";
+          btns[i].style.borderColor = active ? "#7a5a3a" : "#d4c4b4";
+          btns[i].style.borderWidth = active ? "2.5px" : "1.5px";
+        }
+      };
+      row.appendChild(btn);
+    })(n);
+  }
+  return row;
+}
+
+// ── Bake form ─────────────────────────────────────────────────────────────────
+function renderBakeForm(bake, isNew) {
+  var form = deepCopy(bake);
+  if (!form.flours) form.flours = [{name:"Hard White Wheat (fresh-milled)",grams:428}];
+  if (!form.levain) form.levain = {totalG:64,buildHr:5,components:[{name:"Hard White Wheat flour",grams:32},{name:"Ripe starter",grams:16},{name:"Water",grams:16}]};
+  if (!form.photos) form.photos = [];
+  if (!form.sifted) form.sifted = "No";
+
+  var wrap = el("div", "form-wrap");
+
+  var top = el("div", "form-top");
+  top.appendChild(el("div", "form-title", isNew ? "New Bake" : "Test #" + form.testNum));
+  var closeBtn = el("button", "close-btn", "✕");
+  closeBtn.onclick = function() { setState({view:"list"}); };
+  top.appendChild(closeBtn);
+  wrap.appendChild(top);
+
+  // Photos
+  wrap.appendChild(sec("Photos", renderPhotoEditor(form)));
+
+  // Basics
+  var testEl = inp("4", form.testNum, "number");
+  testEl.oninput = function() { form.testNum = this.value; };
+  var dateEl = inp("", form.date, "month");
+  dateEl.oninput = function() { form.date = this.value; };
+  wrap.appendChild(sec("Basics", grid2(fld("Test #", testEl), fld("Date", dateEl))));
+
+  // Flour blend
+  var flourWrap = el("div");
+
+  function updateHydration() {
+    var fl = totalFlourG(form) || 1;
+    form.water1G = Math.round(fl * form.hydration1Pct / 100);
+    form.water2G = Math.round(fl * form.hydration2Pct / 100);
+    if (w1El) w1El.value = form.water1G;
+    if (w2El) w2El.value = form.water2G;
+    if (hydLabel) hydLabel.textContent = totalHydration(form) + "%";
+  }
+
+  flourWrap.appendChild(renderFlourEditor(form, updateHydration));
+
+  var siftToggle = el("div", "toggle-row");
+  var siftOpts = ["No","Yes","Partial"];
+  for (var si = 0; si < siftOpts.length; si++) {
+    (function(opt) {
+      var btn = el("button", "tog" + (form.sifted === opt ? " active" : ""), opt);
+      btn.onclick = function() {
+        form.sifted = opt;
+        var btns = siftToggle.querySelectorAll(".tog");
+        for (var i = 0; i < btns.length; i++) {
+          btns[i].className = "tog" + (siftOpts[i] === opt ? " active" : "");
+        }
+      };
+      siftToggle.appendChild(btn);
+    })(siftOpts[si]);
+  }
+  flourWrap.appendChild(fld("Sifted?", siftToggle));
+  wrap.appendChild(sec("Flour blend", flourWrap));
+
+  // Hydration
+  var h1El = inp("%", form.hydration1Pct, "number");
+  var w1El = inp("g", form.water1G, "number");
+  var h2El = inp("%", form.hydration2Pct, "number");
+  var w2El = inp("g", form.water2G, "number");
+  var hydBar = el("div", "hydbar");
+  var hydLabel = el("strong", null, totalHydration(form) + "%");
+  hydBar.appendChild(document.createTextNode("Total hydration "));
+  hydBar.appendChild(hydLabel);
+  var saltEl = inp("g", form.saltG, "number");
+
+  h1El.oninput = function() { form.hydration1Pct = parseFloat(this.value) || 0; updateHydration(); };
+  w1El.oninput = function() { form.water1G = this.value; };
+  h2El.oninput = function() { form.hydration2Pct = parseFloat(this.value) || 0; updateHydration(); };
+  w2El.oninput = function() { form.water2G = this.value; };
+  saltEl.oninput = function() { form.saltG = this.value; };
+
+  wrap.appendChild(sec("Hydration",
+    grid2(fld("Pass 1 (%)", h1El), fld("Water 1 (g)", w1El)),
+    grid2(fld("Pass 2 (%)", h2El), fld("Water 2 (g)", w2El)),
+    hydBar, fld("Salt (g)", saltEl)
+  ));
+
+  // Levain
+  wrap.appendChild(sec("Levain", renderLevainEditor(form, function(){})));
+
+  // Mixing
+  var sfEl = inp("min", form.slapFoldMin, "number"); sfEl.oninput = function() { form.slapFoldMin = this.value; };
+  var stEl = inp("#", form.stretchFolds, "number"); stEl.oninput = function() { form.stretchFolds = this.value; };
+  var autoEl = inp("hr", form.autolyseHr, "number"); autoEl.oninput = function() { form.autolyseHr = this.value; };
+  var bulkEl = inp("hr", form.bulkHr, "number"); bulkEl.oninput = function() { form.bulkHr = this.value; };
+  var tempNoteEl = inp("e.g. 76F kitchen", form.bulkTempNote); tempNoteEl.oninput = function() { form.bulkTempNote = this.value; };
+  var retardEl = inp("", form.retard); retardEl.oninput = function() { form.retard = this.value; };
+  wrap.appendChild(sec("Mixing & bulk",
+    grid2(fld("Slap & fold (min)", sfEl), fld("Stretch & folds (#)", stEl)),
+    grid2(fld("Autolyse (hr)", autoEl), fld("Bulk ferment (hr)", bulkEl)),
+    fld("Bulk temp note", tempNoteEl), fld("Retard", retardEl)
+  ));
+
+  // Bake
+  var bakeTEl = inp("F", form.bakeTempF, "number"); bakeTEl.oninput = function() { form.bakeTempF = this.value; };
+  var bakeMinEl = inp("min", form.bakeTimeMin, "number"); bakeMinEl.oninput = function() { form.bakeTimeMin = this.value; };
+  wrap.appendChild(sec("Bake", grid2(fld("Temp (F)", bakeTEl), fld("Time (min)", bakeMinEl))));
+
+  // Results
+  var osEl = inp("Good ear, opened well", form.ovenSpring); osEl.oninput = function() { form.ovenSpring = this.value; };
+  var crumbEl = document.createElement("textarea"); crumbEl.rows = 2; crumbEl.value = form.crumb || ""; crumbEl.oninput = function() { form.crumb = this.value; };
+  var crustEl = inp("Dark, shatteringly crisp", form.crust); crustEl.oninput = function() { form.crust = this.value; };
+  var tasteEl = document.createElement("textarea"); tasteEl.rows = 2; tasteEl.value = form.taste || ""; tasteEl.oninput = function() { form.taste = this.value; };
+  wrap.appendChild(sec("Results",
+    fld("Oven spring / ear", osEl),
+    fld("Crumb", crumbEl),
+    fld("Crust", crustEl),
+    fld("Taste", tasteEl),
+    fld("Score (1-10)", renderScorePicker(form, "score"))
+  ));
+
+  // Learnings
+  var kiEl = document.createElement("textarea"); kiEl.rows = 2; kiEl.value = form.keyIssue || ""; kiEl.oninput = function() { form.keyIssue = this.value; };
+  var ncEl = document.createElement("textarea"); ncEl.rows = 2; ncEl.value = form.nextChange || ""; ncEl.oninput = function() { form.nextChange = this.value; };
+  var notesEl = document.createElement("textarea"); notesEl.rows = 3; notesEl.value = form.notes || ""; notesEl.oninput = function() { form.notes = this.value; };
+  wrap.appendChild(sec("Learnings",
+    fld("Key issue", kiEl),
+    fld("What to change next", ncEl),
+    fld("Other notes", notesEl)
+  ));
+
+  // Save
+  var saveBtn = el("button", "save-btn", "Save Bake");
+  saveBtn.onclick = function() {
+    var saved = deepCopy(form);
+    saved.id = saved.id || Date.now();
+    var bakes = state.bakes;
+    var idx = -1;
+    for (var i = 0; i < bakes.length; i++) { if (bakes[i].id === saved.id) { idx = i; break; } }
+    var newBakes = idx >= 0 ? bakes.slice() : bakes.slice();
+    if (idx >= 0) newBakes[idx] = saved; else newBakes.push(saved);
+    saveBakes(newBakes);
+    setState({bakes: newBakes, view: "list"});
+  };
+  wrap.appendChild(saveBtn);
+
+  if (!isNew) {
+    var delBtn = el("button", "del-btn", "Delete this bake");
+    delBtn.onclick = function() {
+      if (window.confirm("Delete this bake?")) {
+        var newBakes = [];
+        for (var i = 0; i < state.bakes.length; i++) { if (state.bakes[i].id !== form.id) newBakes.push(state.bakes[i]); }
+        saveBakes(newBakes);
+        setState({bakes: newBakes, view: "list"});
+      }
+    };
+    wrap.appendChild(delBtn);
+  }
+
+  return wrap;
+}
+
+// ── Compare view ──────────────────────────────────────────────────────────────
+function renderCompare(bakes) {
+  var sorted = bakes.slice().sort(function(a,b){ return a.testNum - b.testNum; });
+  var wrap = el("div");
+
+  var photoRow = el("div", "compare-photos");
+  for (var i = 0; i < sorted.length; i++) {
+    (function(b) {
+      var pw = el("div", "cp-wrap");
+      if (b.photos && b.photos[0]) {
+        var img = document.createElement("img");
+        img.className = "cp-img";
+        img.src = b.photos[0];
+        img.onclick = function() { setState({lightbox: b.photos[0]}); };
+        pw.appendChild(img);
+      } else {
+        pw.appendChild(el("div", "cp-ph", "🍞"));
+      }
+      pw.appendChild(el("div", "cp-lbl", "T" + b.testNum));
+      photoRow.appendChild(pw);
+    })(sorted[i]);
+  }
+  wrap.appendChild(photoRow);
+
+  var vars = [
+    {label:"Flour blend", fn:function(b){return flourSummary(b);}},
+    {label:"Sifted", fn:function(b){return b.sifted||"No";}},
+    {label:"Flour total", fn:function(b){return totalFlourG(b)+"g";}},
+    {label:"Hydration", fn:function(b){return totalHydration(b)+"%";}},
+    {label:"Autolyse", fn:function(b){return b.autolyseHr+"hr";}},
+    {label:"Slap & fold", fn:function(b){return b.slapFoldMin?b.slapFoldMin+"min":"—";}},
+    {label:"S&F rounds", fn:function(b){return b.stretchFolds?b.stretchFolds+"x":"—";}},
+    {label:"Bulk", fn:function(b){return b.bulkHr+"hr";}},
+    {label:"Bulk temp", fn:function(b){return b.bulkTempNote||"—";}},
+    {label:"Levain", fn:function(b){return b.levain?b.levain.totalG+"g / "+b.levain.buildHr+"hr":"—";}},
+    {label:"Score", fn:function(b){return b.score!==""?b.score+"/10":"—";}},
+    {label:"Oven spring", fn:function(b){return b.ovenSpring||"—";}}
+  ];
+
+  var tblWrap = el("div");
+  tblWrap.style.overflowX = "auto";
+  var tbl = el("table", "tbl");
+  var thead = el("thead");
+  var hrow = el("tr");
+  hrow.appendChild(el("th", null, "Variable"));
+  for (var j = 0; j < sorted.length; j++) hrow.appendChild(el("th", "tc", "T" + sorted[j].testNum));
+  thead.appendChild(hrow);
+  tbl.appendChild(thead);
+  var tbody = el("tbody");
+  for (var v = 0; v < vars.length; v++) {
+    var tr = el("tr");
+    tr.appendChild(el("td", null, vars[v].label));
+    for (var k = 0; k < sorted.length; k++) tr.appendChild(el("td", "tc", vars[v].fn(sorted[k])));
+    tbody.appendChild(tr);
+  }
+  tbl.appendChild(tbody);
+  tblWrap.appendChild(tbl);
+  wrap.appendChild(tblWrap);
+  return wrap;
+}
+
+// ── Grain card ────────────────────────────────────────────────────────────────
+function renderGrainCard(grain) {
+  var card = el("div", "grain-card");
+  var top = el("div", "grain-top");
+  top.appendChild(el("div", "grain-name", grain.name || "Unnamed grain"));
+  if (grain.rating !== "") {
+    var badge = el("span", "badge", grain.rating + "/10");
+    badge.style.background = scoreBg(grain.rating);
+    badge.style.color = scoreCol(grain.rating);
+    top.appendChild(badge);
+  }
+  card.appendChild(top);
+  if (grain.farm) card.appendChild(el("div", "grain-farm", grain.farm));
+  var tags = el("div", "tags");
+  if (grain.type) tags.appendChild(el("span", "tag", grain.type));
+  if (grain.origin) tags.appendChild(el("span", "tag", grain.origin));
+  if (grain.season) tags.appendChild(el("span", "tag", grain.season));
+  if (tags.children.length) card.appendChild(tags);
+  if (grain.bestFor) card.appendChild(el("div", "grain-best", "Best for: " + grain.bestFor));
+  if (grain.tastingNotes) card.appendChild(el("div", "grain-tasting", "Tasting: " + grain.tastingNotes));
+  card.onclick = function() { setState({view:"grainForm", selectedGrain: deepCopy(grain), isNewGrain: false}); };
+  return card;
+}
+
+// ── Grain form ────────────────────────────────────────────────────────────────
+function renderGrainForm(grain, isNew) {
+  var form = deepCopy(grain);
+  var wrap = el("div", "form-wrap");
+
+  var top = el("div", "form-top");
+  top.appendChild(el("div", "form-title", isNew ? "New Grain" : (form.name || "Edit Grain")));
+  var closeBtn = el("button", "close-btn", "✕");
+  closeBtn.onclick = function() { setState({view:"grains"}); };
+  top.appendChild(closeBtn);
+  wrap.appendChild(top);
+
+  function ti(placeholder, key) {
+    var e = inp(placeholder, form[key]);
+    e.oninput = function() { form[key] = this.value; };
+    return e;
+  }
+
+  wrap.appendChild(sec("Identity",
+    fld("Grain / flour name", ti("e.g. Hard Red Spring Wheat", "name")),
+    grid2(fld("Farm / mill", ti("e.g. Grist & Toll", "farm")), fld("Type", ti("e.g. Whole berry", "type"))),
+    grid2(fld("Origin / region", ti("e.g. Montana, USA", "origin")), fld("Harvest season", ti("e.g. 2024", "season")))
+  ));
+
+  var tastingEl = document.createElement("textarea"); tastingEl.rows = 2; tastingEl.value = form.tastingNotes || ""; tastingEl.oninput = function() { form.tastingNotes = this.value; };
+  var bestEl = document.createElement("textarea"); bestEl.rows = 2; bestEl.value = form.bestFor || ""; bestEl.oninput = function() { form.bestFor = this.value; };
+  var notesEl = document.createElement("textarea"); notesEl.rows = 3; notesEl.value = form.notes || ""; notesEl.oninput = function() { form.notes = this.value; };
+  wrap.appendChild(sec("Character",
+    fld("Tasting notes", tastingEl),
+    fld("Best used for", bestEl),
+    fld("Other notes", notesEl)
+  ));
+
+  wrap.appendChild(sec("Rating", fld("Overall rating (1-10)", renderScorePicker(form, "rating"))));
+
+  var saveBtn = el("button", "save-btn", "Save Grain");
+  saveBtn.onclick = function() {
+    var saved = deepCopy(form);
+    saved.id = saved.id || Date.now();
+    var grains = state.grains;
+    var idx = -1;
+    for (var i = 0; i < grains.length; i++) { if (grains[i].id === saved.id) { idx = i; break; } }
+    var newGrains = grains.slice();
+    if (idx >= 0) newGrains[idx] = saved; else newGrains.push(saved);
+    saveGrains(newGrains);
+    setState({grains: newGrains, view: "grains"});
+  };
+  wrap.appendChild(saveBtn);
+
+  if (!isNew) {
+    var delBtn = el("button", "del-btn", "Delete this grain");
+    delBtn.onclick = function() {
+      if (window.confirm("Delete this grain?")) {
+        var newGrains = [];
+        for (var i = 0; i < state.grains.length; i++) { if (state.grains[i].id !== form.id) newGrains.push(state.grains[i]); }
+        saveGrains(newGrains);
+        setState({grains: newGrains, view: "grains"});
+      }
+    };
+    wrap.appendChild(delBtn);
+  }
+
+  return wrap;
+}
+
+// ── Export / Import ───────────────────────────────────────────────────────────
+function exportData() {
+  var data = {bakes: state.bakes, grains: state.grains};
+  var blob = new Blob([JSON.stringify(data, null, 2)], {type:"application/json"});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url;
+  a.download = "crumb-journal-" + new Date().toISOString().slice(0,10) + ".json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ── Main render ───────────────────────────────────────────────────────────────
+function render() {
+  var app = document.getElementById("app");
+  app.innerHTML = "";
+
+  if (state.lightbox) app.appendChild(renderLightbox(state.lightbox));
+
+  var container = el("div");
+
+  // Header
+  var hdr = el("div", "hdr");
+  hdr.appendChild(el("div", "hdr-title", "🌾 Crumb Journal"));
+  hdr.appendChild(el("div", "hdr-sub", "Fresh-milled sourdough log"));
+
+  var nav = el("div", "hdr-nav");
+  var views = [["list","Bakes"],["compare","Compare"],["grains","Grains"]];
+  var grainViews = ["grains","grainForm"];
+  for (var ni = 0; ni < views.length; ni++) {
+    (function(v, label) {
+      var isActive = state.view === v || (v === "grains" && grainViews.indexOf(state.view) >= 0);
+      var btn = el("button", "nav-btn" + (isActive ? " active" : ""), label);
+      btn.onclick = function() { setState({view: v}); };
+      nav.appendChild(btn);
+    })(views[ni][0], views[ni][1]);
+  }
+
+  var expBtn = el("button", "nav-btn", "⬇ Export");
+  expBtn.onclick = exportData;
+  nav.appendChild(expBtn);
+
+  // Import
+  var impInp = document.createElement("input");
+  impInp.type = "file";
+  impInp.accept = ".json";
+  impInp.style.cssText = "position:absolute;opacity:0;pointer-events:none;width:1px;height:1px";
+  impInp.onchange = function() {
+    var file = impInp.files[0];
+    if (!file) return;
+    var r = new FileReader();
+    r.onload = function() {
+      try {
+        var d = JSON.parse(r.result);
+        if (d.bakes && Array.isArray(d.bakes)) {
+          var grains = (d.grains && Array.isArray(d.grains)) ? d.grains : state.grains;
+          saveBakes(d.bakes); saveGrains(grains);
+          setState({bakes: d.bakes, grains: grains});
+          alert("Imported " + d.bakes.length + " bakes and " + grains.length + " grains.");
+        } else if (Array.isArray(d)) {
+          saveBakes(d); setState({bakes: d});
+          alert("Imported " + d.length + " bakes.");
+        } else { alert("Invalid file."); }
+      } catch(e) { alert("Could not read file."); }
+    };
+    r.readAsText(file);
+    impInp.value = "";
+  };
+  nav.appendChild(impInp);
+
+  var impBtn = el("button", "nav-btn", "⬆ Import");
+  impBtn.onclick = function() { impInp.click(); };
+  nav.appendChild(impBtn);
+
+  hdr.appendChild(nav);
+  container.appendChild(hdr);
+
+  var content = el("div", "content");
+
+  if (state.view === "list") {
+    var listHdr = el("div", "list-hdr");
+    listHdr.appendChild(el("div", "list-count", state.bakes.length + " bake" + (state.bakes.length !== 1 ? "s" : "") + " logged"));
+    var nextNum = 1;
+    for (var bi = 0; bi < state.bakes.length; bi++) { var n = Number(state.bakes[bi].testNum) || 0; if (n >= nextNum) nextNum = n + 1; }
+    var newBtn = el("button", "new-btn", "+ New Bake");
+    newBtn.onclick = function() {
+      var nb = {id:null,date:new Date().toISOString().slice(0,7),testNum:nextNum,flours:[{name:"Hard White Wheat (fresh-milled)",grams:428}],hydration1Pct:70,water1G:"",hydration2Pct:10,water2G:"",saltG:9,levain:{totalG:64,buildHr:5,components:[{name:"Hard White Wheat flour",grams:32},{name:"Ripe starter",grams:16},{name:"Water",grams:16}]},slapFoldMin:5,stretchFolds:4,sifted:"No",autolyseHr:1,bulkHr:3.5,bulkTempNote:"",retard:"Overnight",bakeTempF:450,bakeTimeMin:45,ovenSpring:"",crumb:"",crust:"",taste:"",score:"",keyIssue:"",nextChange:"",notes:"",photos:[]};
+      setState({view:"form", selected: nb, isNew: true});
+    };
+    listHdr.appendChild(newBtn);
+    content.appendChild(listHdr);
+    var sorted = state.bakes.slice().sort(function(a,b){ return b.testNum - a.testNum; });
+    for (var si = 0; si < sorted.length; si++) content.appendChild(renderBakeCard(sorted[si]));
+  }
+  else if (state.view === "form" && state.selected) {
+    content.appendChild(renderBakeForm(state.selected, state.isNew));
+  }
+  else if (state.view === "compare") {
+    var ch = el("div");
+    ch.style.cssText = "font-size:16px;font-weight:bold;color:#3a2a1a;margin-bottom:14px";
+    ch.textContent = "Side-by-side comparison";
+    content.appendChild(ch);
+    content.appendChild(renderCompare(state.bakes));
+  }
+  else if (state.view === "grains") {
+    var gh = el("div", "list-hdr");
+    gh.appendChild(el("div", "list-count", state.grains.length + " grain" + (state.grains.length !== 1 ? "s" : "") + " logged"));
+    var ngBtn = el("button", "new-btn", "+ New Grain");
+    ngBtn.onclick = function() {
+      setState({view:"grainForm", selectedGrain:{id:null,name:"",farm:"",type:"",season:"",origin:"",tastingNotes:"",bestFor:"",rating:"",notes:""}, isNewGrain:true});
+    };
+    gh.appendChild(ngBtn);
+    content.appendChild(gh);
+    if (state.grains.length === 0) {
+      content.appendChild(el("div", "empty-state", "No grains yet. Tap + New Grain to start your library."));
+    }
+    var gSorted = state.grains.slice().sort(function(a,b){ return (a.name||"").localeCompare(b.name||""); });
+    for (var gi = 0; gi < gSorted.length; gi++) content.appendChild(renderGrainCard(gSorted[gi]));
+  }
+  else if (state.view === "grainForm" && state.selectedGrain) {
+    content.appendChild(renderGrainForm(state.selectedGrain, state.isNewGrain));
+  }
+
+  container.appendChild(content);
+  app.appendChild(container);
+}
+
+render();
+</script>
+</body>
+</html>
