@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Crumb Journal">
+<title>Crumb Journal</title>
+<script>
+(function(){try{var c=document.createElement("canvas");c.width=180;c.height=180;var x=c.getContext("2d");x.fillStyle="#3a2a1a";x.beginPath();x.roundRect(0,0,180,180,36);x.fill();x.font="100px serif";x.textAlign="center";x.textBaseline="middle";x.fillText("🌾",90,95);var l=document.createElement("link");l.rel="apple-touch-icon";l.href=c.toDataURL("image/png");document.head.appendChild(l);}catch(e){}})();
+</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#f5ede2;font-family:Georgia,serif;-webkit-text-size-adjust:100%}
+#app{max-width:480px;margin:0 auto;min-height:100vh;background:#faf4ee}
+.hdr{background:#3a2a1a;padding:20px 16px 16px;position:sticky;top:0;z-index:100}
+.hdr-title{font-size:22px;font-weight:bold;color:#f5e8d4}
+.hdr-sub{font-size:11px;color:#8a7060;letter-spacing:.1em;text-transform:uppercase;margin-top:2px}
+.hdr-nav{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+.nav-btn{padding:6px 12px;border-radius:20px;border:1.5px solid #5a4a3a;background:transparent;color:#c8a87a;font-family:Georgia,serif;font-size:12px;cursor:pointer;text-transform:uppercase}
+.nav-btn.active{background:#c8a87a;color:#3a2a1a;border-color:#c8a87a}
+.content{padding:16px}
+.list-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.list-count{font-size:16px;color:#3a2a1a;font-weight:bold}
+.new-btn{background:#5a3a1a;color:#f5e8d4;border:none;border-radius:20px;padding:8px 16px;font-family:Georgia,serif;font-size:13px;cursor:pointer}
+/* format picker */
+.format-picker{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px}
+.format-card{background:#fdf8f3;border:1.5px solid #e0d0c0;border-radius:12px;padding:18px 14px;cursor:pointer;text-align:center;box-shadow:0 1px 3px rgba(100,60,20,.07)}
+.format-card:active{background:#f0e8dc}
+.format-card-icon{font-size:32px;margin-bottom:8px}
+.format-card-title{font-size:15px;font-weight:bold;color:#3a2a1a;margin-bottom:4px}
+.format-card-desc{font-size:11px;color:#8a7060;line-height:1.4}
+.format-cancel{width:100%;padding:10px;background:none;color:#8a7060;border:1px solid #d4c4b4;border-radius:8px;font-family:Georgia,serif;font-size:13px;cursor:pointer;margin-top:4px}
+/* cards */
+.card{background:#fdf8f3;border:1.5px solid #e0d0c0;border-radius:12px;margin-bottom:10px;cursor:pointer;overflow:hidden;box-shadow:0 1px 3px rgba(100,60,20,.07)}
+.card-img{width:100%;height:180px;object-fit:cover;display:block;border-bottom:1px solid #e0d0c0}
+.card-body{padding:12px 14px}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.card-title{font-size:17px;font-weight:bold;color:#3a2a1a}
+.card-date{font-size:12px;color:#8a7060;margin-left:8px}
+.card-format{font-size:10px;color:#a08060;background:#f0e8dc;border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+.badge{border-radius:20px;padding:3px 10px;font-weight:bold;font-size:14px}
+.tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.tag{background:#f0e8dc;color:#7a5a3a;border-radius:5px;padding:2px 8px;font-size:11px}
+.card-note{font-size:12px;color:#8a7060;margin-top:6px;font-style:italic}
+.thumbs{display:flex;gap:5px;margin-top:8px;overflow-x:auto}
+.thumb{width:60px;height:60px;object-fit:cover;border-radius:7px;border:1px solid #e0d0c0;flex-shrink:0;cursor:pointer}
+/* form */
+.form-wrap{padding-bottom:40px}
+.form-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.form-title{font-size:20px;font-weight:bold;color:#3a2a1a}
+.form-subtitle{font-size:11px;color:#a08060;text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+.close-btn{background:none;border:none;font-size:22px;color:#8a7060;cursor:pointer;padding:4px}
+.sec{margin-bottom:18px}
+.sec-title{font-size:12px;font-weight:bold;letter-spacing:.1em;text-transform:uppercase;color:#7a5a3a;border-bottom:1px solid #e0d0c0;padding-bottom:5px;margin-bottom:12px}
+.fld{margin-bottom:12px}
+.fld-lbl{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:#8a7060;margin-bottom:3px}
+input,textarea{width:100%;box-sizing:border-box;padding:8px 10px;border:1.5px solid #d4c4b4;border-radius:7px;background:#fdf8f3;font-family:Georgia,serif;font-size:14px;color:#3a2a1a;outline:none;-webkit-appearance:none;appearance:none}
+textarea{resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hydbar{background:#f0e8dc;border-radius:8px;padding:9px 12px;font-size:14px;color:#5a3a1a;margin-bottom:4px;display:flex;justify-content:space-between}
+.row-wrap{display:flex;gap:7px;align-items:center;margin-bottom:7px}
+.row-wrap input{flex:1}
+.row-wrap input.grams{width:65px;flex:none;text-align:right}
+.row-wrap input.amt{width:90px;flex:none}
+.row-wrap input.pct{width:55px;flex:none;text-align:right}
+.remove-btn{background:none;border:none;color:#c08070;font-size:20px;cursor:pointer;padding:0 2px;flex-shrink:0;line-height:1}
+.add-row-btn{display:flex;align-items:center;gap:5px;padding:6px 10px;border:1px dashed #c4a88a;border-radius:7px;background:transparent;color:#8a6a4a;font-family:Georgia,serif;font-size:12px;cursor:pointer;margin-top:4px}
+.toggle-row{display:flex;gap:7px;margin-top:2px;flex-wrap:wrap}
+.tog{padding:6px 14px;border-radius:20px;cursor:pointer;border:1.5px solid #d4c4b4;background:#fdf8f3;color:#8a7060;font-family:Georgia,serif;font-size:13px}
+.tog.active{border-color:#7a5a3a;background:#f0e8dc;color:#5a3a1a}
+.score-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.score-btn{width:36px;height:36px;border-radius:50%;border:1.5px solid #d4c4b4;background:#fdf8f3;color:#8a7060;font-family:Georgia,serif;font-weight:bold;font-size:13px;cursor:pointer}
+.score-btn.active{border-width:2.5px;border-color:#7a5a3a}
+.levain-check{border-radius:7px;padding:6px 10px;font-size:12px;margin-bottom:5px;display:flex;justify-content:space-between}
+.levain-ok{background:#e8f0e4;color:#4a6a3a}
+.levain-warn{background:#fdf0e0;color:#8a5a20}
+.flour-block{background:#f7f0e8;border:1px solid #e8ddd0;border-radius:8px;padding:10px 10px 6px;margin-bottom:8px}
+.flour-block-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.flour-block-name{font-size:13px;font-weight:bold;color:#5a3a1a}
+.sift-inline{display:flex;gap:6px;align-items:center;margin-top:6px;flex-wrap:wrap}
+.sift-lbl{font-size:11px;color:#8a7060;letter-spacing:.05em;text-transform:uppercase;flex-shrink:0}
+.sift-tog{padding:3px 10px;border-radius:12px;cursor:pointer;border:1px solid #d4c4b4;background:#fdf8f3;color:#8a7060;font-size:12px}
+.sift-tog.active{border-color:#7a5a3a;background:#f0e8dc;color:#5a3a1a}
+.extraction-wrap{display:flex;gap:6px;align-items:center;margin-top:6px}
+.extraction-wrap input{width:70px;flex:none}
+.extraction-lbl{font-size:12px;color:#6a5a4a}
+.photo-grid{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
+.photo-wrap{position:relative}
+.photo-edit-thumb{width:85px;height:85px;object-fit:cover;border-radius:9px;border:1.5px solid #d4c4b4;cursor:pointer;display:block}
+.photo-x{position:absolute;top:-6px;right:-6px;background:#5a3a1a;border:none;color:#fff;font-size:10px;border-radius:50%;width:20px;height:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+.add-photo-btn{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;padding:10px;border:1.5px dashed #c4a88a;border-radius:9px;background:#fdf8f3;color:#7a5a3a;font-family:Georgia,serif;font-size:13px;cursor:pointer}
+.save-btn{width:100%;padding:13px;background:#5a3a1a;color:#fdf8f3;border:none;border-radius:10px;font-family:Georgia,serif;font-size:16px;font-weight:bold;cursor:pointer;margin-bottom:10px}
+.del-btn{width:100%;padding:10px;background:none;color:#a05a4a;border:1.5px solid #d4b4a4;border-radius:10px;font-family:Georgia,serif;font-size:14px;cursor:pointer}
+.lightbox{position:fixed;inset:0;background:rgba(10,5,2,.94);z-index:2000;display:flex;align-items:center;justify-content:center}
+.lightbox img{max-width:95vw;max-height:88vh;border-radius:9px;object-fit:contain}
+.lb-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.18);border:none;color:#fff;font-size:20px;border-radius:50%;width:38px;height:38px;cursor:pointer}
+.grain-card{background:#fdf8f3;border:1.5px solid #e0d0c0;border-radius:12px;margin-bottom:10px;cursor:pointer;padding:12px 14px;box-shadow:0 1px 3px rgba(100,60,20,.07)}
+.grain-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
+.grain-name{font-size:17px;font-weight:bold;color:#3a2a1a}
+.grain-farm{font-size:12px;color:#8a7060;font-style:italic;margin-bottom:6px}
+.grain-best{font-size:12px;color:#5a4a3a;margin-top:5px}
+.grain-tasting{font-size:12px;color:#6a5a4a;margin-top:3px;line-height:1.5}
+.recipe-card{background:#fdf8f3;border:1.5px solid #e0d0c0;border-radius:12px;margin-bottom:10px;cursor:pointer;padding:14px 16px;box-shadow:0 1px 3px rgba(100,60,20,.07)}
+.recipe-title{font-size:17px;font-weight:bold;color:#3a2a1a;margin-bottom:4px}
+.recipe-meta{font-size:12px;color:#8a7060;font-style:italic}
+.recipe-section-hdr{font-size:13px;font-weight:bold;color:#7a5a3a;text-transform:uppercase;letter-spacing:.08em;margin:14px 0 8px}
+.recipe-ingredient{font-size:14px;color:#3a2a1a;padding:5px 0;border-bottom:1px solid #ede0d4;display:flex;justify-content:space-between}
+.recipe-step{font-size:14px;color:#3a2a1a;padding:8px 0;border-bottom:1px solid #ede0d4;display:flex;gap:10px}
+.recipe-step-num{font-weight:bold;color:#8a7060;flex-shrink:0;min-width:24px}
+.recipe-notes{font-size:13px;color:#6a5a4a;font-style:italic;margin-top:10px;line-height:1.5}
+.empty-state{color:#8a7060;font-style:italic;font-size:13px;text-align:center;margin-top:40px}
+.blend-tags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:7px}
+.blend-tag{background:#efe5d5;color:#5a3a1a;border-radius:5px;padding:2px 8px;font-size:11px}
+.total-tag{background:#e8e0d4;color:#5a4a3a;border-radius:5px;padding:2px 8px;font-size:11px;font-weight:bold}
+.loading{display:flex;align-items:center;justify-content:center;height:100vh;color:#8a7060;font-size:16px}
+.storage-bar-wrap{margin:0 16px 12px;background:#e8ddd4;border-radius:6px;height:6px;overflow:hidden}
+.storage-bar{height:6px;border-radius:6px;background:#7a5a3a;transition:width .3s}
+.storage-label{font-size:10px;color:#8a7060;text-align:right;margin:2px 16px 0;letter-spacing:.04em}
+</style>
+</head>
+<body>
+<div id="app"><div class="loading">Loading…</div></div>
+<script>
+if(!Array.prototype.flat){Array.prototype.flat=function(){var r=[];for(var i=0;i<this.length;i++){if(Array.isArray(this[i])){for(var j=0;j<this[i].length;j++)r.push(this[i][j]);}else r.push(this[i]);}return r;};}
+
+var BAKE_KEY="cj-bakes-v3";var GRAIN_KEY="cj-grains-v1";var RECIPE_KEY="cj-recipes-v1";
+var IDB_NAME="crumb-journal";var IDB_STORE="photos";var IDB_VER=1;
+var idb=null;
+function openIDB(cb){if(idb){cb(idb);return;}var req=indexedDB.open(IDB_NAME,IDB_VER);req.onupgradeneeded=function(e){e.target.result.createObjectStore(IDB_STORE);};req.onsuccess=function(e){idb=e.target.result;cb(idb);};req.onerror=function(){cb(null);};}
+function idbSet(key,value,cb){openIDB(function(db){if(!db){if(cb)cb();return;}var tx=db.transaction(IDB_STORE,"readwrite");tx.objectStore(IDB_STORE).put(value,key);tx.oncomplete=function(){if(cb)cb();};tx.onerror=function(){if(cb)cb();};});}
+function idbGet(key,cb){openIDB(function(db){if(!db){cb(null);return;}var tx=db.transaction(IDB_STORE,"readonly");var req=tx.objectStore(IDB_STORE).get(key);req.onsuccess=function(){cb(req.result||null);};req.onerror=function(){cb(null);};});}
+function idbDelete(key,cb){openIDB(function(db){if(!db){if(cb)cb();return;}var tx=db.transaction(IDB_STORE,"readwrite");tx.objectStore(IDB_STORE).delete(key);tx.oncomplete=function(){if(cb)cb();};});}
+function savePhotos(id,photos,cb){idbSet("bake-"+id,photos,cb);}
+function loadPhotos(id,cb){idbGet("bake-"+id,function(v){cb(v||[]);});}
+function deletePhotos(id,cb){idbDelete("bake-"+id,cb);}
+
+function lsGet(key,fallback){try{var s=localStorage.getItem(key);return s?JSON.parse(s):fallback;}catch(e){return fallback;}}
+function lsSet(key,val){try{localStorage.setItem(key,JSON.stringify(val));return true;}catch(e){return false;}}
+
+// ── Initial data ──────────────────────────────────────────────────────────────
+var INIT_BAKES=[];
+var INIT_GRAINS=[];
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function totalFlourG(b){var t=0;var fl=b.flours||[];for(var i=0;i<fl.length;i++)t+=parseFloat(fl[i].grams)||0;return t;}
+function totalHydration(b){var fl=totalFlourG(b)||1;var w1=parseFloat(b.water1G)||(fl*b.hydration1Pct/100);var w2=parseFloat(b.water2G)||(fl*b.hydration2Pct/100);return Math.round(((w1+w2)/fl)*100);}
+function scoreBg(s){return s>=8?"#e8f0e4":s>=6?"#f5f0e0":"#f5e8e4";}
+function scoreCol(s){return s>=8?"#5a7a4a":s>=6?"#8a7a3a":"#8a4a3a";}
+function compressImage(file,cb){var r=new FileReader();r.onload=function(){var img=new Image();img.onload=function(){var MAX=900;var w=img.width;var h=img.height;if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}if(h>MAX){w=Math.round(w*MAX/h);h=MAX;}var c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(img,0,0,w,h);cb(c.toDataURL("image/jpeg",0.75));};img.src=r.result;};r.readAsDataURL(file);}
+function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e;}
+function inp(placeholder,value,type){var e=document.createElement("input");e.type=type||"text";e.placeholder=placeholder||"";e.value=value!=null?value:"";return e;}
+function deepCopy(o){return JSON.parse(JSON.stringify(o));}
+
+// ── State ─────────────────────────────────────────────────────────────────────
+var state={bakes:lsGet(BAKE_KEY,INIT_BAKES),grains:lsGet(GRAIN_KEY,INIT_GRAINS),recipes:lsGet(RECIPE_KEY,[]),view:"list",selected:null,isNew:false,showFormatPicker:false,selectedGrain:null,isNewGrain:false,selectedRecipe:null,isNewRecipe:false,recipeDetail:null,lightbox:null,photoCache:{}};
+function setState(patch){var keys=Object.keys(patch);for(var i=0;i<keys.length;i++)state[keys[i]]=patch[keys[i]];render();}
+
+// ── Export / Import ───────────────────────────────────────────────────────────
+function exportData(){
+  var ids=[];for(var i=0;i<state.bakes.length;i++)ids.push(state.bakes[i].id);
+  var pm={};var done=0;
+  if(!ids.length){doExport({});return;}
+  for(var j=0;j<ids.length;j++){(function(id){var c=state.photoCache[id];if(c){pm[id]=c;done++;if(done===ids.length)doExport(pm);}else{loadPhotos(id,function(p){pm[id]=p;done++;if(done===ids.length)doExport(pm);});};})(ids[j]);}
+  function doExport(pm){var data={bakes:state.bakes,grains:state.grains,recipes:state.recipes,photos:pm};var blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});var url=URL.createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download="crumb-journal-"+new Date().toISOString().slice(0,10)+".json";document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);}
+}
+function importData(file){
+  var r=new FileReader();
+  r.onload=function(){
+    try{
+      var d=JSON.parse(r.result);
+      var bakes=Array.isArray(d)?d:(d.bakes||[]);
+      var grains=d.grains||state.grains;var recipes=d.recipes||[];var photos=d.photos||{};
+      for(var i=0;i<bakes.length;i++){delete bakes[i].photos;}
+      lsSet(BAKE_KEY,bakes);lsSet(GRAIN_KEY,grains);lsSet(RECIPE_KEY,recipes);
+      var ids=Object.keys(photos);var done=0;
+      function finish(){state.photoCache={};setState({bakes:bakes,grains:grains,recipes:recipes});alert("Imported "+bakes.length+" bakes, "+grains.length+" grains, "+recipes.length+" recipes.");}
+      if(!ids.length){finish();return;}
+      for(var j=0;j<ids.length;j++){(function(id,ph){savePhotos(id,ph,function(){done++;if(done===ids.length)finish();});})(parseInt(ids[j]),photos[ids[j]]);}
+    }catch(e){alert("Could not read file.");}
+  };
+  r.readAsText(file);
+}
+
+// ── Storage bar ───────────────────────────────────────────────────────────────
+function getStorageUsed(){try{var t=0;var ks=Object.keys(localStorage);for(var i=0;i<ks.length;i++)t+=localStorage[ks[i]].length*2;return t;}catch(e){return 0;}}
+function renderStorageBar(){var used=getStorageUsed();var MAX=4.5*1024*1024;var pct=Math.min(100,Math.round((used/MAX)*100));var wrap=el("div");var bar=el("div","storage-bar-wrap");var fill=el("div","storage-bar");fill.style.width=pct+"%";if(pct>80)fill.style.background="#c05030";else if(pct>60)fill.style.background="#c08030";bar.appendChild(fill);wrap.appendChild(bar);var kb=Math.round(used/1024);var lbl=el("div","storage-label","Text: "+kb+"KB ("+pct+"%) · Photos: IndexedDB (unlimited)");wrap.appendChild(lbl);return wrap;}
+
+// ── Lightbox ──────────────────────────────────────────────────────────────────
+function renderLightbox(src){var box=el("div","lightbox");var img=document.createElement("img");img.src=src;box.appendChild(img);var btn=el("button","lb-close","✕");btn.onclick=function(){setState({lightbox:null});};box.onclick=function(ev){if(ev.target===box)setState({lightbox:null});};box.appendChild(btn);return box;}
+
+// ── Form helpers ──────────────────────────────────────────────────────────────
+function fld(label,child){var w=el("div","fld");w.appendChild(el("div","fld-lbl",label));w.appendChild(child);return w;}
+function sec(title){var s=el("div","sec");s.appendChild(el("div","sec-title",title));for(var i=1;i<arguments.length;i++)s.appendChild(arguments[i]);return s;}
+function grid2(){var g=el("div","grid2");for(var i=0;i<arguments.length;i++)g.appendChild(arguments[i]);return g;}
+function mkToggle(options,current,onChange){var row=el("div","toggle-row");for(var i=0;i<options.length;i++){(function(opt){var btn=el("button","tog"+(current===opt?" active":""),opt);btn.onclick=function(){current=opt;var bs=row.querySelectorAll(".tog");for(var j=0;j<bs.length;j++)bs[j].className="tog"+(options[j]===opt?" active":"");onChange(opt);};row.appendChild(btn);})(options[i]);}return row;}
+
+// ── Photo editor ──────────────────────────────────────────────────────────────
+function renderPhotoEditor(photos,onChange){
+  var wrap=el("div");
+  function rebuild(){
+    wrap.innerHTML="";
+    if(photos.length>0){var grid=el("div","photo-grid");for(var i=0;i<photos.length;i++){(function(idx,src){var pw=el("div","photo-wrap");var img=document.createElement("img");img.className="photo-edit-thumb";img.src=src;img.onclick=function(){setState({lightbox:src});};var xb=el("button","photo-x","✕");xb.onclick=function(){photos.splice(idx,1);if(onChange)onChange(photos);rebuild();};pw.appendChild(img);pw.appendChild(xb);grid.appendChild(pw);})(i,photos[i]);}wrap.appendChild(grid);}
+    var label=document.createElement("label");label.className="add-photo-btn";label.style.cssText="cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px";var icon=el("span");icon.style.fontSize="17px";icon.textContent="📷";label.appendChild(icon);label.appendChild(document.createTextNode(photos.length>0?"Add more photos":"Add photo"));var fi=document.createElement("input");fi.type="file";fi.accept="image/*";fi.style.cssText="position:absolute;width:1px;height:1px;opacity:.01;overflow:hidden";fi.onchange=function(){var files=fi.files;if(!files||!files.length)return;var loaded=0;for(var i=0;i<files.length;i++){(function(file){compressImage(file,function(data){photos.push(data);loaded++;if(loaded===files.length){if(onChange)onChange(photos);rebuild();}});})(files[i]);}};label.appendChild(fi);wrap.appendChild(label);
+  }
+  rebuild();return wrap;
+}
+
+// ── Flour editor with per-flour sifted ───────────────────────────────────────
+function renderFlourEditor(form,onUpdate){
+  var wrap=el("div");
+  function rebuild(){
+    wrap.innerHTML="";
+    var flours=form.flours;
+    for(var i=0;i<flours.length;i++){
+      (function(idx){
+        var flour=flours[idx];
+        var block=el("div","flour-block");
+        // Header row: name + grams + remove
+        var hdr=el("div","flour-block-hdr");
+        var nameEl=inp("Grain / flour name",flour.name);nameEl.style.flex="1";nameEl.oninput=function(){form.flours[idx].name=this.value;};
+        var gramsEl=inp("g",flour.grams,"number");gramsEl.className="grams";gramsEl.oninput=function(){form.flours[idx].grams=parseFloat(this.value)||"";onUpdate();};
+        var nameWrap=el("div","row-wrap");nameWrap.style.marginBottom="0";nameWrap.appendChild(nameEl);nameWrap.appendChild(gramsEl);
+        if(flours.length>1){var rb=el("button","remove-btn","×");rb.onclick=function(){form.flours.splice(idx,1);rebuild();onUpdate();};nameWrap.appendChild(rb);}
+        hdr.appendChild(nameWrap);block.appendChild(hdr);
+
+        // Sifted toggle
+        var siftRow=el("div","sift-inline");
+        siftRow.appendChild(el("span","sift-lbl","Sifted?"));
+        var siftOpts=["No","Yes"];
+        for(var s=0;s<siftOpts.length;s++){
+          (function(opt){
+            var sb=el("button","sift-tog"+(flour.sifted===opt?" active":""),opt);
+            sb.onclick=function(){
+              form.flours[idx].sifted=opt;
+              var sbs=siftRow.querySelectorAll(".sift-tog");
+              for(var k=0;k<sbs.length;k++)sbs[k].className="sift-tog"+(siftOpts[k]===opt?" active":"");
+              rebuild();
+            };
+            siftRow.appendChild(sb);
+          })(siftOpts[s]);
+        }
+        block.appendChild(siftRow);
+
+        // Extraction if sifted=Yes
+        if(flour.sifted==="Yes"){
+          var extWrap=el("div","extraction-wrap");
+          var extEl=inp("e.g. 85",flour.extraction,"number");extEl.oninput=function(){form.flours[idx].extraction=this.value;};
+          extWrap.appendChild(extEl);
+          extWrap.appendChild(el("span","extraction-lbl","% extraction"));
+          block.appendChild(extWrap);
+        }
+        wrap.appendChild(block);
+      })(i);
+    }
+
+    // Blend summary
+    var total=totalFlourG(form);
+    if(form.flours.length>1&&total>0){
+      var bt=el("div","blend-tags");
+      for(var j=0;j<form.flours.length;j++){var pct=Math.round(((parseFloat(form.flours[j].grams)||0)/total)*100);bt.appendChild(el("span","blend-tag",pct+"% "+(form.flours[j].name||"?")));}
+      bt.appendChild(el("span","total-tag",total+"g total"));wrap.appendChild(bt);
+    }
+    var ab=el("button","add-row-btn","+ Add flour");ab.onclick=function(){form.flours.push({name:"",grams:"",sifted:"No",extraction:""});rebuild();};wrap.appendChild(ab);
+  }
+  rebuild();return wrap;
+}
+
+// ── Levain editor ─────────────────────────────────────────────────────────────
+function renderLevainEditor(form){
+  var wrap=el("div");
+  function rebuild(){
+    wrap.innerHTML="";var lev=form.levain;
+    var te=inp("g",lev.totalG,"number");te.oninput=function(){form.levain.totalG=parseFloat(this.value)||0;rebuild();};
+    var be=inp("hr",lev.buildHr,"number");be.oninput=function(){form.levain.buildHr=parseFloat(this.value)||0;};
+    wrap.appendChild(grid2(fld("Total levain (g)",te),fld("Build time (hr)",be)));
+    var cl=el("div","fld-lbl","Levain components");cl.style.marginBottom="6px";wrap.appendChild(cl);
+    var comps=lev.components;
+    for(var i=0;i<comps.length;i++){(function(idx){var row=el("div","row-wrap");var ne=inp("e.g. Hard white flour, Water, Ripe starter",comps[idx].name);ne.oninput=function(){form.levain.components[idx].name=this.value;};var ge=inp("g",comps[idx].grams,"number");ge.className="grams";ge.oninput=function(){form.levain.components[idx].grams=parseFloat(this.value)||"";rebuild();};row.appendChild(ne);row.appendChild(ge);if(comps.length>1){var rb=el("button","remove-btn","×");rb.onclick=function(){form.levain.components.splice(idx,1);rebuild();};row.appendChild(rb);}wrap.appendChild(row);})(i);}
+    var ct=0;for(var j=0;j<comps.length;j++)ct+=parseFloat(comps[j].grams)||0;
+    if(ct>0){var ok=ct===parseFloat(lev.totalG);var ch=el("div","levain-check "+(ok?"levain-ok":"levain-warn"));ch.innerHTML="<span>Components total</span><strong>"+ct+"g "+(ok?"✓":"(target: "+lev.totalG+"g)")+"</strong>";wrap.appendChild(ch);}
+    var ab=el("button","add-row-btn","+ Add component");ab.onclick=function(){form.levain.components.push({name:"",grams:""});rebuild();};wrap.appendChild(ab);
+  }
+  rebuild();return wrap;
+}
+
+// ── Generic row editor ────────────────────────────────────────────────────────
+function renderRowEditor(items,opts){
+  var wrap=el("div");
+  var c1k=opts.col1key||"name";var c2k=opts.col2key||"amount";
+  function rebuild(){
+    wrap.innerHTML="";
+    for(var i=0;i<items.length;i++){(function(idx){var row=el("div","row-wrap");var ne=inp(opts.col1ph||"",items[idx][c1k]);ne.oninput=function(){items[idx][c1k]=this.value;};var ae=inp(opts.col2ph||"",items[idx][c2k],opts.col2type||"text");if(opts.col2cls)ae.className=opts.col2cls;ae.oninput=function(){items[idx][c2k]=this.value;};row.appendChild(ne);row.appendChild(ae);var rb=el("button","remove-btn","×");rb.onclick=function(){items.splice(idx,1);rebuild();};row.appendChild(rb);wrap.appendChild(row);})(i);}
+    var ab=el("button","add-row-btn","+ "+(opts.addLabel||"Add"));ab.onclick=function(){var o={};o[c1k]="";o[c2k]="";items.push(o);rebuild();};wrap.appendChild(ab);
+  }
+  rebuild();return wrap;
+}
+
+// ── Score picker ──────────────────────────────────────────────────────────────
+function renderScorePicker(form,key){
+  var row=el("div","score-row");
+  for(var n=1;n<=10;n++){(function(num){var btn=el("button","score-btn"+(form[key]===num?" active":""),String(num));if(form[key]===num){btn.style.background=scoreBg(num);btn.style.color=scoreCol(num);btn.style.borderColor="#7a5a3a";}btn.onclick=function(){form[key]=num;var btns=row.querySelectorAll(".score-btn");for(var i=0;i<btns.length;i++){var a=(i+1)===num;btns[i].className="score-btn"+(a?" active":"");btns[i].style.background=a?scoreBg(num):"#fdf8f3";btns[i].style.color=a?scoreCol(num):"#8a7060";btns[i].style.borderColor=a?"#7a5a3a":"#d4c4b4";btns[i].style.borderWidth=a?"2.5px":"1.5px";}};row.appendChild(btn);})(n);}
+  return row;
+}
+
+// ── Learnings section (shared by both formats) ────────────────────────────────
+function renderLearnings(form){
+  var kiEl=document.createElement("textarea");kiEl.rows=2;kiEl.value=form.keyIssue||"";kiEl.placeholder="What went wrong or what stood out?";kiEl.oninput=function(){form.keyIssue=this.value;};
+  var ncEl=document.createElement("textarea");ncEl.rows=2;ncEl.value=form.nextChange||"";ncEl.placeholder="Next variable to test or try…";ncEl.oninput=function(){form.nextChange=this.value;};
+  var notesEl=document.createElement("textarea");notesEl.rows=3;notesEl.value=form.notes||"";notesEl.placeholder="Anything else…";notesEl.oninput=function(){form.notes=this.value;};
+  return sec("Learnings",fld("Key issue / observation",kiEl),fld("What to change or try next",ncEl),fld("Other notes",notesEl),fld("Score (1-10)",renderScorePicker(form,"score")));
+}
+
+// ── Save bake helper ──────────────────────────────────────────────────────────
+function saveBake(form,photos){
+  var saved=deepCopy(form);saved.id=saved.id||Date.now();
+  var bakes=state.bakes.slice();var idx=-1;for(var i=0;i<bakes.length;i++){if(bakes[i].id===saved.id){idx=i;break;}}
+  if(idx>=0)bakes[idx]=saved;else bakes.push(saved);
+  lsSet(BAKE_KEY,bakes);
+  state.photoCache[saved.id]=photos.slice();
+  savePhotos(saved.id,photos,function(){setState({bakes:bakes,view:"list"});});
+}
+
+// ── SOURDOUGH FORM ────────────────────────────────────────────────────────────
+function renderSourdoughForm(bake,isNew){
+  var form=deepCopy(bake);
+  if(!form.flours)form.flours=[{name:"Hard White Wheat (fresh-milled)",grams:428,sifted:"No",extraction:""}];
+  if(!form.levain)form.levain={totalG:64,buildHr:5,components:[{name:"Hard White Wheat flour",grams:32},{name:"Ripe starter",grams:16},{name:"Water",grams:16}]};
+  if(!form.mixins)form.mixins=[];if(!form.toppings)form.toppings=[];if(!form.otherIngredients)form.otherIngredients=[];
+  var photos=state.photoCache[form.id]?state.photoCache[form.id].slice():[];
+  var wrap=el("div","form-wrap");
+  var top=el("div","form-top");
+  var topLeft=el("div");topLeft.appendChild(el("div","form-title",isNew?"New Bake":"Test #"+form.testNum));topLeft.appendChild(el("div","form-subtitle","Sourdough loaf"));
+  top.appendChild(topLeft);var cb=el("button","close-btn","✕");cb.onclick=function(){setState({view:"list"});};top.appendChild(cb);wrap.appendChild(top);
+
+  // Photos
+  wrap.appendChild(sec("Photos",renderPhotoEditor(photos,null)));
+
+  // Basics
+  var testEl=inp("4",form.testNum,"number");testEl.oninput=function(){form.testNum=this.value;};
+  var dateEl=inp("",form.date,"month");dateEl.oninput=function(){form.date=this.value;};
+  wrap.appendChild(sec("Basics",grid2(fld("Test #",testEl),fld("Date",dateEl))));
+
+  // Flour blend
+  function updateHydration(){var fl=totalFlourG(form)||1;form.water1G=Math.round(fl*form.hydration1Pct/100);form.water2G=Math.round(fl*form.hydration2Pct/100);if(w1El)w1El.value=form.water1G;if(w2El)w2El.value=form.water2G;if(hydLabel)hydLabel.textContent=totalHydration(form)+"%";}
+  wrap.appendChild(sec("Flour blend",renderFlourEditor(form,updateHydration)));
+
+  // Mix-ins & toppings
+  var mixEl=renderRowEditor(form.mixins,{col1ph:"e.g. Jalapeño, Cheddar, Walnuts",col2ph:"e.g. 80g",col2cls:"amt",addLabel:"Add mix-in"});
+  var topEl=renderRowEditor(form.toppings,{col1ph:"e.g. Sesame seeds, Bran flakes",col2ph:"e.g. 2 tbsp",col2cls:"amt",addLabel:"Add topping"});
+  wrap.appendChild(sec("Mix-ins & toppings",fld("Mix-ins (folded in)",mixEl),fld("Toppings (on crust)",topEl)));
+
+  // Hydration
+  var h1El=inp("%",form.hydration1Pct,"number");h1El.oninput=function(){form.hydration1Pct=parseFloat(this.value)||0;updateHydration();};
+  var w1El=inp("g",form.water1G,"number");w1El.oninput=function(){form.water1G=this.value;};
+  var h2El=inp("%",form.hydration2Pct,"number");h2El.oninput=function(){form.hydration2Pct=parseFloat(this.value)||0;updateHydration();};
+  var w2El=inp("g",form.water2G,"number");w2El.oninput=function(){form.water2G=this.value;};
+  var hydBar=el("div","hydbar");var hydLabel=el("strong",null,totalHydration(form)+"%");hydBar.appendChild(document.createTextNode("Total hydration "));hydBar.appendChild(hydLabel);
+  var saltEl=inp("g",form.saltG,"number");saltEl.oninput=function(){form.saltG=this.value;};
+  var otherIngEl=renderRowEditor(form.otherIngredients,{col1ph:"e.g. Honey, Milk, Olive oil",col2ph:"g",col2cls:"grams",addLabel:"Add ingredient"});
+  wrap.appendChild(sec("Hydration",
+    grid2(fld("Pass 1 (%)",h1El),fld("Water 1 (g)",w1El)),
+    grid2(fld("Bassinage (%)",h2El),fld("Bassinage (g)",w2El)),
+    hydBar,fld("Salt (g)",saltEl),fld("Other ingredients (g)",otherIngEl)
+  ));
+
+  // Levain
+  wrap.appendChild(sec("Levain",renderLevainEditor(form)));
+
+  // Mixing & bulk
+  var autoEl=inp("hr",form.autolyseHr,"number");autoEl.oninput=function(){form.autolyseHr=this.value;};
+  var sfEl=inp("min",form.slapFoldMin,"number");sfEl.oninput=function(){form.slapFoldMin=this.value;};
+  var stEl=inp("#",form.stretchFolds,"number");stEl.oninput=function(){form.stretchFolds=this.value;};
+  var bulkEl=inp("hr",form.bulkHr,"number");bulkEl.oninput=function(){form.bulkHr=this.value;};
+  var bulkOtherEl=document.createElement("textarea");bulkOtherEl.rows=2;bulkOtherEl.value=form.bulkOther||"";bulkOtherEl.placeholder="e.g. Lamination, coil folds, any other technique used…";bulkOtherEl.oninput=function(){form.bulkOther=this.value;};
+  var retardEl=inp("",form.retard);retardEl.oninput=function(){form.retard=this.value;};
+  wrap.appendChild(sec("Mixing & bulk",
+    fld("Autolyse (hr)",autoEl),
+    grid2(fld("Slap & fold (min)",sfEl),fld("Stretch & folds (#)",stEl)),
+    fld("Bulk ferment (hr)",bulkEl),
+    fld("Other / notes",bulkOtherEl),
+    fld("Retard",retardEl)
+  ));
+
+  // Temperatures
+  var ambEl=inp("e.g. 74",form.ambientTempF,"number");ambEl.oninput=function(){form.ambientTempF=this.value;};
+  var atEl=inp("e.g. 72",form.autolyseTempF,"number");atEl.oninput=function(){form.autolyseTempF=this.value;};
+  var bsEl=inp("e.g. 76",form.bulkStartTempF,"number");bsEl.oninput=function(){form.bulkStartTempF=this.value;};
+  var beEl=inp("e.g. 78",form.bulkEndTempF,"number");beEl.oninput=function(){form.bulkEndTempF=this.value;};
+  wrap.appendChild(sec("Temperatures (°F)",fld("Ambient / house temp",ambEl),grid2(fld("At autolyse",atEl),fld("Bulk start",bsEl)),fld("Bulk end",beEl)));
+
+  // Bake
+  var bakeTEl=inp("F",form.bakeTempF,"number");bakeTEl.oninput=function(){form.bakeTempF=this.value;};
+  var bakeMinEl=inp("min",form.bakeTimeMin,"number");bakeMinEl.oninput=function(){form.bakeTimeMin=this.value;};
+  wrap.appendChild(sec("Bake",grid2(fld("Temp (F)",bakeTEl),fld("Time (min)",bakeMinEl))));
+
+  // Results
+  var osEl=inp("Good ear, opened well",form.ovenSpring);osEl.oninput=function(){form.ovenSpring=this.value;};
+  var crumbEl=document.createElement("textarea");crumbEl.rows=2;crumbEl.value=form.crumb||"";crumbEl.oninput=function(){form.crumb=this.value;};
+  var crustEl=inp("Dark, shatteringly crisp",form.crust);crustEl.oninput=function(){form.crust=this.value;};
+  var tasteEl=document.createElement("textarea");tasteEl.rows=2;tasteEl.value=form.taste||"";tasteEl.oninput=function(){form.taste=this.value;};
+  wrap.appendChild(sec("Results",fld("Oven spring / ear",osEl),fld("Crumb",crumbEl),fld("Crust",crustEl),fld("Taste",tasteEl)));
+
+  // Learnings
+  wrap.appendChild(renderLearnings(form));
+
+  // Save
+  var sb=el("button","save-btn","Save Bake");sb.onclick=function(){saveBake(form,photos);};wrap.appendChild(sb);
+  if(!isNew){var db=el("button","del-btn","Delete this bake");db.onclick=function(){if(window.confirm("Delete?")){var nb=[];for(var i=0;i<state.bakes.length;i++){if(state.bakes[i].id!==form.id)nb.push(state.bakes[i]);}lsSet(BAKE_KEY,nb);delete state.photoCache[form.id];deletePhotos(form.id,function(){setState({bakes:nb,view:"list"});});}};wrap.appendChild(db);}
+  return wrap;
+}
+
+// ── FREEFORM FORM ─────────────────────────────────────────────────────────────
+function renderFreeformForm(bake,isNew){
+  var form=deepCopy(bake);
+  if(!form.freeIngredients)form.freeIngredients=[];
+  if(!form.freeSteps)form.freeSteps=[];
+  var photos=state.photoCache[form.id]?state.photoCache[form.id].slice():[];
+  var wrap=el("div","form-wrap");
+  var top=el("div","form-top");
+  var topLeft=el("div");topLeft.appendChild(el("div","form-title",isNew?"New Bake":"Test #"+form.testNum));topLeft.appendChild(el("div","form-subtitle","Freeform"));
+  top.appendChild(topLeft);var cb=el("button","close-btn","✕");cb.onclick=function(){setState({view:"list"});};top.appendChild(cb);wrap.appendChild(top);
+
+  // Photos
+  wrap.appendChild(sec("Photos",renderPhotoEditor(photos,null)));
+
+  // Basics
+  var testEl=inp("4",form.testNum,"number");testEl.oninput=function(){form.testNum=this.value;};
+  var dateEl=inp("",form.date,"month");dateEl.oninput=function(){form.date=this.value;};
+  var titleEl=inp("e.g. Jalapeño Cheddar Focaccia",form.freeTitle||"");titleEl.oninput=function(){form.freeTitle=this.value;};
+  wrap.appendChild(sec("Basics",grid2(fld("Test #",testEl),fld("Date",dateEl)),fld("What did you make?",titleEl)));
+
+  // Ingredients
+  var ingEl=renderRowEditor(form.freeIngredients,{col1ph:"Ingredient",col2ph:"Amount",col2cls:"amt",addLabel:"Add ingredient"});
+  wrap.appendChild(sec("Ingredients",ingEl));
+
+  // Steps
+  var stepsWrap=el("div");
+  function rebuildSteps(){
+    stepsWrap.innerHTML="";
+    for(var i=0;i<form.freeSteps.length;i++){(function(idx){var row=el("div","row-wrap");var numLbl=el("span",null,(idx+1)+".");numLbl.style.cssText="flex-shrink:0;font-size:14px;color:#8a7060;min-width:20px";var te=document.createElement("textarea");te.rows=2;te.style.flex="1";te.value=form.freeSteps[idx].text||"";te.placeholder="Describe this step…";te.oninput=function(){form.freeSteps[idx].text=this.value;};var rb=el("button","remove-btn","×");rb.onclick=function(){form.freeSteps.splice(idx,1);rebuildSteps();};row.appendChild(numLbl);row.appendChild(te);row.appendChild(rb);stepsWrap.appendChild(row);})(i);}
+    var ab=el("button","add-row-btn","+ Add step");ab.onclick=function(){form.freeSteps.push({text:""});rebuildSteps();};stepsWrap.appendChild(ab);
+  }
+  rebuildSteps();
+  wrap.appendChild(sec("Method",stepsWrap));
+
+  // Learnings
+  wrap.appendChild(renderLearnings(form));
+
+  // Save
+  var sb=el("button","save-btn","Save Bake");sb.onclick=function(){form.format="freeform";saveBake(form,photos);};wrap.appendChild(sb);
+  if(!isNew){var db=el("button","del-btn","Delete this bake");db.onclick=function(){if(window.confirm("Delete?")){var nb=[];for(var i=0;i<state.bakes.length;i++){if(state.bakes[i].id!==form.id)nb.push(state.bakes[i]);}lsSet(BAKE_KEY,nb);delete state.photoCache[form.id];deletePhotos(form.id,function(){setState({bakes:nb,view:"list"});});}};wrap.appendChild(db);}
+  return wrap;
+}
+
+// ── Format picker ─────────────────────────────────────────────────────────────
+function renderFormatPicker(nextNum){
+  var wrap=el("div","form-wrap");
+  var top=el("div","form-top");top.appendChild(el("div","form-title","New Bake"));var cb=el("button","close-btn","✕");cb.onclick=function(){setState({view:"list"});};top.appendChild(cb);wrap.appendChild(top);
+  var picker=el("div","format-picker");
+
+  var sd=el("div","format-card");
+  var sdIcon=el("div","format-card-icon","🍞");
+  sd.appendChild(sdIcon);sd.appendChild(el("div","format-card-title","Sourdough loaf"));sd.appendChild(el("div","format-card-desc","Fresh-milled flour bake with full formula — hydration, levain, bulk, temps"));
+  sd.onclick=function(){
+    setState({view:"form",selected:{id:null,format:"sourdough",date:new Date().toISOString().slice(0,7),testNum:nextNum,flours:[{name:"Hard White Wheat (fresh-milled)",grams:428,sifted:"No",extraction:""}],hydration1Pct:70,water1G:"",hydration2Pct:10,water2G:"",saltG:9,otherIngredients:[],levain:{totalG:64,buildHr:5,components:[{name:"Hard White Wheat flour",grams:32},{name:"Ripe starter",grams:16},{name:"Water",grams:16}]},mixins:[],toppings:[],slapFoldMin:5,stretchFolds:4,autolyseHr:1,bulkHr:3.5,bulkOther:"",ambientTempF:"",autolyseTempF:"",bulkStartTempF:"",bulkEndTempF:"",retard:"Overnight",bakeTempF:450,bakeTimeMin:45,ovenSpring:"",crumb:"",crust:"",taste:"",score:"",keyIssue:"",nextChange:"",notes:""},isNew:true});
+  };
+
+  var ff=el("div","format-card");
+  ff.appendChild(el("div","format-card-icon","📝"));ff.appendChild(el("div","format-card-title","Freeform bake"));ff.appendChild(el("div","format-card-desc","Anything else — focaccia, bagels, cookies, pizza. Ingredient list + steps + notes"));
+  ff.onclick=function(){
+    setState({view:"formFreeform",selected:{id:null,format:"freeform",date:new Date().toISOString().slice(0,7),testNum:nextNum,freeTitle:"",freeIngredients:[],freeSteps:[],score:"",keyIssue:"",nextChange:"",notes:""},isNew:true});
+  };
+
+  picker.appendChild(sd);picker.appendChild(ff);wrap.appendChild(picker);
+  var cancel=el("button","format-cancel","Cancel");cancel.onclick=function(){setState({view:"list"});};wrap.appendChild(cancel);
+  return wrap;
+}
+
+// ── Bake card ─────────────────────────────────────────────────────────────────
+function renderBakeCard(bake){
+  var card=el("div","card");
+  var photos=state.photoCache[bake.id]||[];
+  if(photos.length>0){var hero=document.createElement("img");hero.className="card-img";hero.src=photos[0];hero.onclick=function(ev){ev.stopPropagation();setState({lightbox:photos[0]});};card.appendChild(hero);}
+  var body=el("div","card-body");
+  var top=el("div","card-top");
+  var left=el("div");
+  var titleSpan=el("span","card-title","Test #"+bake.testNum);
+  left.appendChild(titleSpan);
+  if(bake.format==="freeform"){left.appendChild(el("span","card-format","Freeform"));}
+  left.appendChild(el("span","card-date",bake.date));
+  top.appendChild(left);
+  if(bake.score!==""){var badge=el("span","badge",bake.score+"/10");badge.style.background=scoreBg(bake.score);badge.style.color=scoreCol(bake.score);top.appendChild(badge);}
+  body.appendChild(top);
+
+  if(bake.format==="freeform"){
+    if(bake.freeTitle){var ft=el("div",null,bake.freeTitle);ft.style.cssText="font-size:13px;color:#5a4a3a;margin-bottom:6px;font-style:italic";body.appendChild(ft);}
+  } else {
+    var flours=bake.flours||[];var flourTotal=totalFlourG(bake);
+    if(flours.length===1){var fn=el("div",null,flours[0].name);fn.style.cssText="font-size:13px;color:#5a4a3a;margin-bottom:6px";body.appendChild(fn);}
+    else{var bt=el("div","blend-tags");for(var i=0;i<flours.length;i++){var pct=Math.round(((parseFloat(flours[i].grams)||0)/flourTotal)*100);bt.appendChild(el("span","blend-tag",pct+"% "+flours[i].name));}body.appendChild(bt);}
+    var tags=el("div","tags");
+    var tl=[flourTotal+"g flour",totalHydration(bake)+"% hydration",bake.autolyseHr+"hr autolyse",bake.bulkHr+"hr bulk"];
+    if(bake.slapFoldMin)tl.push(bake.slapFoldMin+"min slap/fold");
+    if(bake.stretchFolds)tl.push(bake.stretchFolds+"x S&F");
+    if(bake.mixins&&bake.mixins.length){var mn=[];for(var m=0;m<bake.mixins.length;m++){if(bake.mixins[m].name)mn.push(bake.mixins[m].name);}if(mn.length)tl.push("Mix-ins: "+mn.join(", "));}
+    for(var ti=0;ti<tl.length;ti++)tags.appendChild(el("span","tag",tl[ti]));
+    body.appendChild(tags);
+  }
+
+  if(photos.length>1){var thumbs=el("div","thumbs");for(var p=1;p<photos.length;p++){(function(src){var th=document.createElement("img");th.className="thumb";th.src=src;th.onclick=function(ev){ev.stopPropagation();setState({lightbox:src});};thumbs.appendChild(th);})(photos[p]);}body.appendChild(thumbs);}
+  if(bake.ovenSpring)body.appendChild(el("div","card-note","↑ "+bake.ovenSpring));
+  card.appendChild(body);
+  card.onclick=function(){
+    if(bake.format==="freeform")setState({view:"formFreeform",selected:deepCopy(bake),isNew:false});
+    else setState({view:"form",selected:deepCopy(bake),isNew:false});
+  };
+  return card;
+}
+
+// ── Grain card & form ─────────────────────────────────────────────────────────
+function renderGrainCard(grain){var card=el("div","grain-card");var top=el("div","grain-top");top.appendChild(el("div","grain-name",grain.name||"Unnamed grain"));if(grain.rating!==""){var badge=el("span","badge",grain.rating+"/10");badge.style.background=scoreBg(grain.rating);badge.style.color=scoreCol(grain.rating);top.appendChild(badge);}card.appendChild(top);if(grain.farm)card.appendChild(el("div","grain-farm",grain.farm));var tags=el("div","tags");if(grain.type)tags.appendChild(el("span","tag",grain.type));if(grain.origin)tags.appendChild(el("span","tag",grain.origin));if(grain.season)tags.appendChild(el("span","tag",grain.season));if(tags.children.length)card.appendChild(tags);if(grain.bestFor)card.appendChild(el("div","grain-best","Best for: "+grain.bestFor));if(grain.tastingNotes)card.appendChild(el("div","grain-tasting","Tasting: "+grain.tastingNotes));card.onclick=function(){setState({view:"grainForm",selectedGrain:deepCopy(grain),isNewGrain:false});};return card;}
+
+function renderGrainForm(grain,isNew){
+  var form=deepCopy(grain);var wrap=el("div","form-wrap");
+  var top=el("div","form-top");top.appendChild(el("div","form-title",isNew?"New Grain":(form.name||"Edit Grain")));var cb=el("button","close-btn","✕");cb.onclick=function(){setState({view:"grains"});};top.appendChild(cb);wrap.appendChild(top);
+  function ti(ph,key){var e=inp(ph,form[key]);e.oninput=function(){form[key]=this.value;};return e;}
+  wrap.appendChild(sec("Identity",fld("Grain / flour name",ti("e.g. Hard Red Spring Wheat","name")),grid2(fld("Farm / mill",ti("e.g. Grist & Toll","farm")),fld("Type",ti("e.g. Whole berry","type"))),grid2(fld("Origin / region",ti("e.g. Montana, USA","origin")),fld("Harvest season",ti("e.g. 2024","season")))));
+  var tastEl=document.createElement("textarea");tastEl.rows=2;tastEl.value=form.tastingNotes||"";tastEl.oninput=function(){form.tastingNotes=this.value;};
+  var bestEl=document.createElement("textarea");bestEl.rows=2;bestEl.value=form.bestFor||"";bestEl.oninput=function(){form.bestFor=this.value;};
+  var notesEl=document.createElement("textarea");notesEl.rows=3;notesEl.value=form.notes||"";notesEl.oninput=function(){form.notes=this.value;};
+  wrap.appendChild(sec("Character",fld("Tasting notes",tastEl),fld("Best used for",bestEl),fld("Other notes",notesEl)));
+  wrap.appendChild(sec("Rating",fld("Overall rating (1-10)",renderScorePicker(form,"rating"))));
+  var sb=el("button","save-btn","Save Grain");sb.onclick=function(){var saved=deepCopy(form);saved.id=saved.id||Date.now();var grains=state.grains.slice();var idx=-1;for(var i=0;i<grains.length;i++){if(grains[i].id===saved.id){idx=i;break;}}if(idx>=0)grains[idx]=saved;else grains.push(saved);lsSet(GRAIN_KEY,grains);setState({grains:grains,view:"grains"});};wrap.appendChild(sb);
+  if(!isNew){var db=el("button","del-btn","Delete this grain");db.onclick=function(){if(window.confirm("Delete?")){var ng=[];for(var i=0;i<state.grains.length;i++){if(state.grains[i].id!==form.id)ng.push(state.grains[i]);}lsSet(GRAIN_KEY,ng);setState({grains:ng,view:"grains"});}};wrap.appendChild(db);}
+  return wrap;
+}
+
+// ── Recipe card, detail & form ────────────────────────────────────────────────
+function renderRecipeCard(recipe){var card=el("div","recipe-card");card.appendChild(el("div","recipe-title",recipe.title||"Untitled recipe"));var meta=[];if(recipe.ingredients&&recipe.ingredients.length)meta.push(recipe.ingredients.length+" ingredients");if(recipe.steps&&recipe.steps.length)meta.push(recipe.steps.length+" steps");if(meta.length)card.appendChild(el("div","recipe-meta",meta.join(" · ")));card.onclick=function(){setState({recipeDetail:deepCopy(recipe),view:"recipeDetail"});};return card;}
+
+function renderRecipeDetail(recipe){
+  var wrap=el("div","form-wrap");
+  var top=el("div","form-top");top.appendChild(el("div","form-title",recipe.title||"Recipe"));
+  var btns=el("div");var editBtn=el("button","new-btn","Edit");editBtn.style.marginRight="8px";editBtn.onclick=function(){setState({view:"recipeForm",selectedRecipe:deepCopy(recipe),isNewRecipe:false});};var closeBtn=el("button","close-btn","✕");closeBtn.onclick=function(){setState({view:"recipes",recipeDetail:null});};btns.appendChild(editBtn);btns.appendChild(closeBtn);top.appendChild(btns);wrap.appendChild(top);
+  if(recipe.description){var desc=el("div",null,recipe.description);desc.style.cssText="font-size:13px;color:#6a5a4a;font-style:italic;margin-bottom:14px;line-height:1.5";wrap.appendChild(desc);}
+  if(recipe.ingredients&&recipe.ingredients.length){wrap.appendChild(el("div","recipe-section-hdr","Ingredients"));for(var i=0;i<recipe.ingredients.length;i++){var row=el("div","recipe-ingredient");row.appendChild(el("span",null,recipe.ingredients[i].name||""));if(recipe.ingredients[i].amount)row.appendChild(el("span",null,recipe.ingredients[i].amount));wrap.appendChild(row);}}
+  if(recipe.steps&&recipe.steps.length){wrap.appendChild(el("div","recipe-section-hdr","Method"));for(var j=0;j<recipe.steps.length;j++){var srow=el("div","recipe-step");srow.appendChild(el("span","recipe-step-num",(j+1)+"."));srow.appendChild(el("span",null,recipe.steps[j].text||""));wrap.appendChild(srow);}}
+  if(recipe.notes){wrap.appendChild(el("div","recipe-section-hdr","Notes"));wrap.appendChild(el("div","recipe-notes",recipe.notes));}
+  var delBtn=el("button","del-btn","Delete recipe");delBtn.style.marginTop="16px";delBtn.onclick=function(){if(window.confirm("Delete?")){var nr=[];for(var i=0;i<state.recipes.length;i++){if(state.recipes[i].id!==recipe.id)nr.push(state.recipes[i]);}lsSet(RECIPE_KEY,nr);setState({recipes:nr,view:"recipes",recipeDetail:null});}};wrap.appendChild(delBtn);
+  return wrap;
+}
+
+function renderRecipeForm(recipe,isNew){
+  var form=deepCopy(recipe);if(!form.ingredients)form.ingredients=[];if(!form.steps)form.steps=[];
+  var wrap=el("div","form-wrap");
+  var top=el("div","form-top");top.appendChild(el("div","form-title",isNew?"New Recipe":(form.title||"Edit Recipe")));var cb=el("button","close-btn","✕");cb.onclick=function(){setState({view:"recipes"});};top.appendChild(cb);wrap.appendChild(top);
+  var titleEl=inp("e.g. Jalapeño Cheddar Sourdough",form.title);titleEl.oninput=function(){form.title=this.value;};
+  var descEl=document.createElement("textarea");descEl.rows=2;descEl.value=form.description||"";descEl.placeholder="Short description…";descEl.oninput=function(){form.description=this.value;};
+  wrap.appendChild(sec("Recipe",fld("Title",titleEl),fld("Description",descEl)));
+  var ingEl=renderRowEditor(form.ingredients,{col1ph:"Ingredient name",col2ph:"Amount",col1key:"name",col2key:"amount",col2cls:"amt",addLabel:"Add ingredient"});
+  wrap.appendChild(sec("Ingredients",ingEl));
+  var stepsWrap=el("div");
+  function rebuildSteps(){stepsWrap.innerHTML="";for(var i=0;i<form.steps.length;i++){(function(idx){var row=el("div","row-wrap");var numLbl=el("span",null,(idx+1)+".");numLbl.style.cssText="flex-shrink:0;font-size:14px;color:#8a7060;min-width:20px";var te=document.createElement("textarea");te.rows=2;te.style.flex="1";te.value=form.steps[idx].text||"";te.placeholder="Describe this step…";te.oninput=function(){form.steps[idx].text=this.value;};var rb=el("button","remove-btn","×");rb.onclick=function(){form.steps.splice(idx,1);rebuildSteps();};row.appendChild(numLbl);row.appendChild(te);row.appendChild(rb);stepsWrap.appendChild(row);})(i);}var ab=el("button","add-row-btn","+ Add step");ab.onclick=function(){form.steps.push({text:""});rebuildSteps();};stepsWrap.appendChild(ab);}
+  rebuildSteps();wrap.appendChild(sec("Method",stepsWrap));
+  var notesEl=document.createElement("textarea");notesEl.rows=3;notesEl.value=form.notes||"";notesEl.placeholder="Tips, variations, source…";notesEl.oninput=function(){form.notes=this.value;};wrap.appendChild(sec("Notes",fld("Notes",notesEl)));
+  var sb=el("button","save-btn","Save Recipe");sb.onclick=function(){var saved=deepCopy(form);saved.id=saved.id||Date.now();var recipes=state.recipes.slice();var idx=-1;for(var i=0;i<recipes.length;i++){if(recipes[i].id===saved.id){idx=i;break;}}if(idx>=0)recipes[idx]=saved;else recipes.push(saved);lsSet(RECIPE_KEY,recipes);setState({recipes:recipes,view:"recipes"});};wrap.appendChild(sb);
+  return wrap;
+}
+
+// ── Main render ───────────────────────────────────────────────────────────────
+function render(){
+  var app=document.getElementById("app");app.innerHTML="";
+  if(state.lightbox)app.appendChild(renderLightbox(state.lightbox));
+  var container=el("div");
+  var hdr=el("div","hdr");
+  hdr.appendChild(el("div","hdr-title","🌾 Crumb Journal"));
+  hdr.appendChild(el("div","hdr-sub","Fresh-milled sourdough log"));
+  var nav=el("div","hdr-nav");
+  var tabViews={list:["list","form","formFreeform","formatPicker"],grains:["grains","grainForm"],recipes:["recipes","recipeForm","recipeDetail"]};
+  var tabs=[["list","Journal"],["grains","Grains"],["recipes","Recipes"]];
+  for(var ti=0;ti<tabs.length;ti++){(function(v,label){var group=tabViews[v]||[v];var isActive=group.indexOf(state.view)>=0;var btn=el("button","nav-btn"+(isActive?" active":""),label);btn.onclick=function(){setState({view:v});};nav.appendChild(btn);})(tabs[ti][0],tabs[ti][1]);}
+  var expBtn=el("button","nav-btn","⬇ Export");expBtn.onclick=exportData;nav.appendChild(expBtn);
+  var impInp=document.createElement("input");impInp.type="file";impInp.accept=".json";impInp.style.cssText="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px";impInp.onchange=function(){if(impInp.files[0]){importData(impInp.files[0]);impInp.value="";}};nav.appendChild(impInp);
+  var impBtn=el("button","nav-btn","⬆ Import");impBtn.onclick=function(){impInp.click();};nav.appendChild(impBtn);
+  hdr.appendChild(nav);container.appendChild(hdr);
+  if(state.view==="list")container.appendChild(renderStorageBar());
+  var content=el("div","content");
+
+  if(state.view==="list"){
+    var lh=el("div","list-hdr");
+    lh.appendChild(el("div","list-count",state.bakes.length+" bake"+(state.bakes.length!==1?"s":"")+" logged"));
+    var nextNum=1;for(var bi=0;bi<state.bakes.length;bi++){var n=Number(state.bakes[bi].testNum)||0;if(n>=nextNum)nextNum=n+1;}
+    var nb=el("button","new-btn","+ New Bake");nb.onclick=function(){setState({view:"formatPicker"});};
+    lh.appendChild(nb);content.appendChild(lh);
+    var sorted=state.bakes.slice().sort(function(a,b){return b.testNum-a.testNum;});
+    var loaded=0;var total=sorted.length;
+    if(total===0){container.appendChild(content);app.appendChild(container);return;}
+    for(var si=0;si<sorted.length;si++){(function(bake){if(state.photoCache[bake.id]!==undefined){content.appendChild(renderBakeCard(bake));loaded++;if(loaded===total){container.appendChild(content);app.appendChild(container);}}else{loadPhotos(bake.id,function(photos){state.photoCache[bake.id]=photos;content.appendChild(renderBakeCard(bake));loaded++;if(loaded===total){container.appendChild(content);app.appendChild(container);}});}})(sorted[si]);}
+    return;
+  }
+  else if(state.view==="formatPicker"){
+    var nextNum2=1;for(var bi2=0;bi2<state.bakes.length;bi2++){var n2=Number(state.bakes[bi2].testNum)||0;if(n2>=nextNum2)nextNum2=n2+1;}
+    content.appendChild(renderFormatPicker(nextNum2));
+  }
+  else if(state.view==="form"&&state.selected){
+    var bid=state.selected.id;
+    if(bid&&state.photoCache[bid]===undefined){loadPhotos(bid,function(photos){state.photoCache[bid]=photos;content.appendChild(renderSourdoughForm(state.selected,state.isNew));container.appendChild(content);app.appendChild(container);});return;}
+    content.appendChild(renderSourdoughForm(state.selected,state.isNew));
+  }
+  else if(state.view==="formFreeform"&&state.selected){
+    var bid2=state.selected.id;
+    if(bid2&&state.photoCache[bid2]===undefined){loadPhotos(bid2,function(photos){state.photoCache[bid2]=photos;content.appendChild(renderFreeformForm(state.selected,state.isNew));container.appendChild(content);app.appendChild(container);});return;}
+    content.appendChild(renderFreeformForm(state.selected,state.isNew));
+  }
+  else if(state.view==="grains"){
+    var gh=el("div","list-hdr");gh.appendChild(el("div","list-count",state.grains.length+" grain"+(state.grains.length!==1?"s":"")+" logged"));var ngb=el("button","new-btn","+ New Grain");ngb.onclick=function(){setState({view:"grainForm",selectedGrain:{id:null,name:"",farm:"",type:"",season:"",origin:"",tastingNotes:"",bestFor:"",rating:"",notes:""},isNewGrain:true});};gh.appendChild(ngb);content.appendChild(gh);
+    if(!state.grains.length)content.appendChild(el("div","empty-state","No grains yet."));
+    var gs=state.grains.slice().sort(function(a,b){return(a.name||"").localeCompare(b.name||"");});for(var gi=0;gi<gs.length;gi++)content.appendChild(renderGrainCard(gs[gi]));
+  }
+  else if(state.view==="grainForm"&&state.selectedGrain){content.appendChild(renderGrainForm(state.selectedGrain,state.isNewGrain));}
+  else if(state.view==="recipes"){
+    var rh=el("div","list-hdr");rh.appendChild(el("div","list-count",state.recipes.length+" recipe"+(state.recipes.length!==1?"s":"")));var nrb=el("button","new-btn","+ New Recipe");nrb.onclick=function(){setState({view:"recipeForm",selectedRecipe:{id:null,title:"",description:"",ingredients:[],steps:[],notes:""},isNewRecipe:true});};rh.appendChild(nrb);content.appendChild(rh);
+    if(!state.recipes.length)content.appendChild(el("div","empty-state","No recipes yet. Tap + New Recipe to save your favourites."));
+    var recs=state.recipes.slice().sort(function(a,b){return(a.title||"").localeCompare(b.title||"");});for(var ri=0;ri<recs.length;ri++)content.appendChild(renderRecipeCard(recs[ri]));
+  }
+  else if(state.view==="recipeForm"&&state.selectedRecipe){content.appendChild(renderRecipeForm(state.selectedRecipe,state.isNewRecipe));}
+  else if(state.view==="recipeDetail"&&state.recipeDetail){content.appendChild(renderRecipeDetail(state.recipeDetail));}
+
+  container.appendChild(content);app.appendChild(container);
+}
+
+render();
+</script>
+</body>
+</html>
