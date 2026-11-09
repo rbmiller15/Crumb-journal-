@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Yum Journal">
+<title>Yum Journal</title>
+<script>
+(function(){try{var c=document.createElement("canvas");c.width=180;c.height=180;var x=c.getContext("2d");x.fillStyle="#3a2a1a";if(x.roundRect){x.beginPath();x.roundRect(0,0,180,180,36);x.fill();}else{x.fillRect(0,0,180,180);}x.font="96px serif";x.textAlign="center";x.textBaseline="middle";x.fillText("🍽️",90,96);var l=document.createElement("link");l.rel="apple-touch-icon";l.href=c.toDataURL("image/png");document.head.appendChild(l);}catch(e){}})();
+</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{min-height:100%;background:#f5ede2;font-family:Georgia,serif;-webkit-text-size-adjust:100%}
+#app{max-width:480px;margin:0 auto;min-height:100vh;background:#faf4ee}
+.hdr{background:#3a2a1a;padding:20px 16px 14px;position:sticky;top:0;z-index:100}
+.hdr-row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.hdr-title{font-size:22px;font-weight:bold;color:#f5e8d4}
+.hdr-sub{font-size:11px;color:#a08a70;letter-spacing:.1em;text-transform:uppercase;margin-top:2px}
+.swap-btn{flex-shrink:0;padding:6px 10px;border-radius:16px;border:1px solid #6a5a4a;background:#4a3826;color:#f5e8d4;font-family:Georgia,serif;font-size:12px;cursor:pointer;margin-top:2px}
+.hdr-nav{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+.nav-btn{padding:6px 12px;border-radius:20px;border:1.5px solid #5a4a3a;background:transparent;color:#c8a87a;font-family:Georgia,serif;font-size:12px;cursor:pointer;text-transform:uppercase}
+.nav-btn.active{background:#c8a87a;color:#3a2a1a;border-color:#c8a87a}
+.nav-btn.util{font-size:11px;text-transform:none;padding:5px 10px}
+.content{padding:16px}
+.list-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.list-count{font-size:16px;color:#3a2a1a;font-weight:bold}
+.new-btn{background:#5a3a1a;color:#f5e8d4;border:none;border-radius:20px;padding:8px 16px;font-family:Georgia,serif;font-size:13px;cursor:pointer}
+.format-picker{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px}
+.format-card{background:#fdf8f3;border:1.5px solid #e0d0c0;border-radius:12px;padding:18px 14px;cursor:pointer;text-align:center}
+.format-card-icon{font-size:32px;margin-bottom:8px}
+.format-card-title{font-size:15px;font-weight:bold;color:#3a2a1a;margin-bottom:4px}
+.format-card-desc{font-size:11px;color:#8a7060;line-height:1.4}
+.format-cancel{width:100%;padding:10px;background:none;color:#8a7060;border:1px solid #d4c4b4;border-radius:8px;font-family:Georgia,serif;font-size:13px;cursor:pointer;margin-top:4px}
+.card{background:#fdf8f3;border:1.5px solid #e0d0c0;border-radius:12px;margin-bottom:10px;cursor:pointer;overflow:hidden;box-shadow:0 1px 3px rgba(100,60,20,.07)}
+.card-img{width:100%;height:180px;object-fit:cover;display:block;border-bottom:1px solid #e0d0c0}
+.card-body{padding:12px 14px}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px}
+.card-title{font-size:17px;font-weight:bold;color:#3a2a1a}
+.card-date{font-size:12px;color:#8a7060;margin-left:6px;white-space:nowrap}
+.card-format{font-size:10px;color:#a08060;background:#f0e8dc;border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+.card-meta{font-size:12px;color:#8a7060;font-style:italic;margin-bottom:4px}
+.badge{border-radius:20px;padding:3px 10px;font-weight:bold;font-size:14px;flex-shrink:0}
+.tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.tag{background:#f0e8dc;color:#7a5a3a;border-radius:5px;padding:2px 8px;font-size:11px}
+.card-note{font-size:12px;color:#8a7060;margin-top:6px;font-style:italic}
+.thumbs{display:flex;gap:5px;margin-top:8px;overflow-x:auto}
+.thumb{width:60px;height:60px;object-fit:cover;border-radius:7px;border:1px solid #e0d0c0;flex-shrink:0;cursor:pointer}
+.form-wrap{padding-bottom:40px}
+.form-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:8px}
+.form-title{font-size:20px;font-weight:bold;color:#3a2a1a}
+.form-subtitle{font-size:11px;color:#a08060;text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+.close-btn{background:none;border:none;font-size:22px;color:#8a7060;cursor:pointer;padding:4px}
+.sec{margin-bottom:18px}
+.sec-title{font-size:12px;font-weight:bold;letter-spacing:.1em;text-transform:uppercase;color:#7a5a3a;border-bottom:1px solid #e0d0c0;padding-bottom:5px;margin-bottom:12px}
+.sub-hdr{font-size:12px;font-weight:bold;color:#5a3a1a;margin:4px 0 8px}
+.fld{margin-bottom:12px}
+.fld-lbl{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:#8a7060;margin-bottom:3px}
+.hint{font-size:11px;color:#a08a70;font-style:italic;line-height:1.4;margin:-4px 0 10px}
+input,textarea{width:100%;box-sizing:border-box;padding:8px 10px;border:1.5px solid #d4c4b4;border-radius:7px;background:#fdf8f3;font-family:Georgia,serif;font-size:16px;color:#3a2a1a;outline:none;-webkit-appearance:none;appearance:none}
+textarea{resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:16px;background:#3a2a1a;border-radius:10px;padding:10px}
+.stat{background:#4a3826;border-radius:7px;padding:6px 8px}
+.stat.wide{grid-column:span 2}
+.stat-lbl{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#c8a87a}
+.stat-val{font-size:15px;font-weight:bold;color:#f5e8d4;margin-top:1px}
+.stat-sub{font-size:10px;color:#c8b8a0}
+.row-wrap{display:flex;gap:7px;align-items:center;margin-bottom:7px}
+.row-wrap input{flex:1;min-width:0}
+.row-wrap input.grams{width:72px;flex:none;text-align:right}
+.row-wrap input.amt{width:96px;flex:none}
+.remove-btn{background:none;border:none;color:#c08070;font-size:22px;cursor:pointer;padding:0 2px;flex-shrink:0;line-height:1}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap}
+.add-row-btn{display:flex;align-items:center;gap:5px;padding:6px 10px;border:1px dashed #c4a88a;border-radius:7px;background:transparent;color:#8a6a4a;font-family:Georgia,serif;font-size:12px;cursor:pointer;margin-top:4px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
+.chip{padding:5px 12px;border-radius:16px;cursor:pointer;border:1.5px solid #d4c4b4;background:#fdf8f3;color:#8a7060;font-family:Georgia,serif;font-size:13px}
+.chip.active{border-color:#7a5a3a;background:#f0e8dc;color:#5a3a1a;font-weight:bold}
+.filter-row{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px}
+.filter-row .chip{flex-shrink:0;font-size:12px;padding:4px 10px}
+.score-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.score-btn{width:36px;height:36px;border-radius:50%;border:1.5px solid #d4c4b4;background:#fdf8f3;color:#8a7060;font-family:Georgia,serif;font-weight:bold;font-size:13px;cursor:pointer}
+.levain-check{border-radius:7px;padding:6px 10px;font-size:12px;margin:6px 0;display:flex;justify-content:space-between;gap:8px;background:#e8f0e4;color:#4a6a3a}
+.flour-block{background:#f7f0e8;border:1px solid #e8ddd0;border-radius:8px;padding:10px 10px 8px;margin-bottom:8px}
+.sift-inline{display:flex;gap:6px;align-items:center;margin-top:6px;flex-wrap:wrap}
+.sift-lbl{font-size:11px;color:#8a7060;letter-spacing:.05em;text-transform:uppercase}
+.sift-tog{padding:3px 10px;border-radius:12px;cursor:pointer;border:1px solid #d4c4b4;background:#fdf8f3;color:#8a7060;font-size:12px;font-family:Georgia,serif}
+.sift-tog.active{border-color:#7a5a3a;background:#f0e8dc;color:#5a3a1a}
+.extraction-wrap{display:flex;gap:6px;align-items:center;margin-top:6px}
+.extraction-wrap input{width:80px;flex:none}
+.extraction-lbl{font-size:12px;color:#6a5a4a}
+.photo-grid{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
+.photo-wrap{position:relative}
+.photo-edit-thumb{width:85px;height:85px;object-fit:cover;border-radius:9px;border:1.5px solid #d4c4b4;cursor:pointer;display:block}
+.photo-x{position:absolute;top:-6px;right:-6px;background:#5a3a1a;border:none;color:#fff;font-size:10px;border-radius:50%;width:20px;height:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+.add-photo-btn{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;padding:10px;border:1.5px dashed #c4a88a;border-radius:9px;background:#fdf8f3;color:#7a5a3a;font-family:Georgia,serif;font-size:13px;cursor:pointer;position:relative;overflow:hidden}
+.save-btn{width:100%;padding:13px;background:#5a3a1a;color:#fdf8f3;border:none;border-radius:10px;font-family:Georgia,serif;font-size:16px;font-weight:bold;cursor:pointer;margin-bottom:10px}
+.secondary-btn{width:100%;padding:10px;background:none;color:#5a3a1a;border:1.5px solid #c4a88a;border-radius:10px;font-family:Georgia,serif;font-size:14px;cursor:pointer;margin-bottom:10px}
+.del-btn{width:100%;padding:10px;background:none;color:#a05a4a;border:1.5px solid #d4b4a4;border-radius:10px;font-family:Georgia,serif;font-size:14px;cursor:pointer}
+.overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(10,5,2,.85);z-index:3000;display:flex;align-items:center;justify-content:center;padding:20px}
+.overlay img{max-width:95vw;max-height:88vh;border-radius:9px;object-fit:contain}
+.lb-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.18);border:none;color:#fff;font-size:20px;border-radius:50%;width:38px;height:38px;cursor:pointer}
+.modal{background:#faf4ee;border-radius:14px;padding:18px;width:100%;max-width:420px;max-height:85vh;overflow-y:auto}
+.modal-title{font-size:16px;font-weight:bold;color:#3a2a1a;margin-bottom:6px}
+.modal-text{font-size:13px;color:#6a5a4a;line-height:1.5;margin-bottom:12px}
+.modal-btns{display:flex;gap:10px}
+.modal-btns button,.modal-btns a{flex:1;padding:11px;border-radius:9px;font-family:Georgia,serif;font-size:14px;cursor:pointer;text-align:center;text-decoration:none}
+.btn-primary{background:#5a3a1a;color:#fdf8f3;border:none;font-weight:bold}
+.btn-ghost{background:none;color:#8a7060;border:1.5px solid #d4c4b4}
+.grain-card,.recipe-card{background:#fdf8f3;border:1.5px solid #e0d0c0;border-radius:12px;margin-bottom:10px;cursor:pointer;padding:12px 14px;box-shadow:0 1px 3px rgba(100,60,20,.07)}
+.grain-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
+.grain-name,.recipe-title{font-size:17px;font-weight:bold;color:#3a2a1a}
+.grain-farm{font-size:12px;color:#8a7060;font-style:italic;margin-bottom:6px}
+.grain-best{font-size:12px;color:#5a4a3a;margin-top:5px}
+.grain-tasting{font-size:12px;color:#6a5a4a;margin-top:3px;line-height:1.5}
+.recipe-meta{font-size:12px;color:#8a7060;font-style:italic;margin-top:3px}
+.recipe-section-hdr{font-size:13px;font-weight:bold;color:#7a5a3a;text-transform:uppercase;letter-spacing:.08em;margin:16px 0 8px}
+.recipe-ingredient{font-size:14px;color:#3a2a1a;padding:6px 0;border-bottom:1px solid #ede0d4;display:flex;justify-content:space-between;gap:10px}
+.recipe-ingredient span:last-child{flex-shrink:0;color:#6a5a4a}
+.recipe-step{font-size:14px;color:#3a2a1a;padding:8px 0;border-bottom:1px solid #ede0d4;display:flex;gap:10px;line-height:1.45}
+.recipe-step-num{font-weight:bold;color:#8a7060;flex-shrink:0;min-width:22px}
+.recipe-notes{font-size:13px;color:#6a5a4a;margin-top:6px;line-height:1.55;white-space:pre-wrap}
+.src-link{color:#7a5a3a}
+.empty-state{color:#8a7060;font-style:italic;font-size:13px;text-align:center;margin-top:40px;line-height:1.5}
+.blend-tags{display:flex;gap:5px;flex-wrap:wrap;margin:4px 0 7px}
+.blend-tag{background:#efe5d5;color:#5a3a1a;border-radius:5px;padding:2px 8px;font-size:11px}
+.total-tag{background:#e8e0d4;color:#5a4a3a;border-radius:5px;padding:2px 8px;font-size:11px;font-weight:bold}
+.loading{display:flex;align-items:center;justify-content:center;height:100vh;color:#8a7060;font-size:16px}
+.storage-bar-wrap{margin:10px 16px 0;background:#e8ddd4;border-radius:6px;height:5px;overflow:hidden}
+.storage-bar{height:5px;border-radius:6px;background:#7a5a3a}
+.storage-label{font-size:10px;color:#8a7060;text-align:right;margin:2px 16px 0}
+.toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);background:#3a2a1a;color:#f5e8d4;padding:10px 16px;border-radius:20px;font-size:13px;z-index:4000;max-width:90vw;text-align:center}
+.notice{position:fixed;top:0;left:0;right:0;background:#3a2a1a;color:#f5e8d4;text-align:center;padding:12px;font-size:14px;z-index:9999}
+</style>
+</head>
+<body>
+<div id="app"><div class="loading">Loading…</div></div>
+<script>
+// =============================================================================
+// Yum Journal — Crumb Journal (sourdough) + Yum Journal (everyday food)
+// Plain ES5 for iOS compatibility.
+// =============================================================================
+
+// ── Storage keys ─────────────────────────────────────────────────────────────
+var BAKE_KEY="cj-bakes-v3", GRAIN_KEY="cj-grains-v1", RECIPE_KEY="cj-recipes-v1";
+var YENTRY_KEY="yj-entries-v1", YRECIPE_KEY="yj-recipes-v1", BOOK_KEY="yj-last-book";
+var IDB_NAME="crumb-journal", IDB_STORE="photos", IDB_VER=1;
+var CATEGORIES=["Breakfast","Lunch","Dinner","Side","Dessert","Baking","Snack","Drink","Other"];
+
+// ── IndexedDB (photos) ───────────────────────────────────────────────────────
+var idb=null;
+function openIDB(cb){
+  if(idb){cb(idb);return;}
+  try{
+    var req=indexedDB.open(IDB_NAME,IDB_VER);
+    req.onupgradeneeded=function(e){e.target.result.createObjectStore(IDB_STORE);};
+    req.onsuccess=function(e){idb=e.target.result;cb(idb);};
+    req.onerror=function(){cb(null);};
+  }catch(e){cb(null);}
+}
+function loadPhotosK(key,cb){
+  openIDB(function(db){
+    if(!db){cb([]);return;}
+    try{
+      var req=db.transaction(IDB_STORE,"readonly").objectStore(IDB_STORE).get(key);
+      req.onsuccess=function(){cb(req.result||[]);};
+      req.onerror=function(){cb([]);};
+    }catch(e){cb([]);}
+  });
+}
+function savePhotosK(key,photos,cb){
+  openIDB(function(db){
+    if(!db){if(cb)cb();return;}
+    try{
+      var tx=db.transaction(IDB_STORE,"readwrite");
+      tx.objectStore(IDB_STORE).put(photos||[],key);
+      tx.oncomplete=function(){if(cb)cb();};
+      tx.onerror=function(){if(cb)cb();};
+    }catch(e){if(cb)cb();}
+  });
+}
+function deletePhotosK(key,cb){
+  openIDB(function(db){
+    if(!db){if(cb)cb();return;}
+    try{
+      var tx=db.transaction(IDB_STORE,"readwrite");
+      tx.objectStore(IDB_STORE)["delete"](key);
+      tx.oncomplete=function(){if(cb)cb();};
+      tx.onerror=function(){if(cb)cb();};
+    }catch(e){if(cb)cb();}
+  });
+}
+function bakeKey(id){return "bake-"+id;}
+function recipeKey(book,id){return (book==="crumb"?"recipe-":"yrecipe-")+id;}
+function yEntryKey(id){return "yentry-"+id;}
+
+// ── localStorage (text) ──────────────────────────────────────────────────────
+function lsGet(key,fallback){try{var s=localStorage.getItem(key);return s?JSON.parse(s):fallback;}catch(e){return fallback;}}
+function lsSet(key,val){
+  try{localStorage.setItem(key,JSON.stringify(val));return true;}
+  catch(e){alert("Couldn't save — device storage may be full. Export a backup and remove old entries.");return false;}
+}
+
+// ── Small helpers ────────────────────────────────────────────────────────────
+function num(v){var n=parseFloat(v);return isNaN(n)?0:n;}
+function round1(x){return Math.round(x*10)/10;}
+function deepCopy(o){return JSON.parse(JSON.stringify(o));}
+function todayMonth(){return new Date().toISOString().slice(0,7);}
+function todayDate(){var d=new Date();var m=d.getMonth()+1,day=d.getDate();return d.getFullYear()+"-"+(m<10?"0":"")+m+"-"+(day<10?"0":"")+day;}
+function scoreBg(s){return s>=8?"#e8f0e4":s>=6?"#f5f0e0":"#f5e8e4";}
+function scoreCol(s){return s>=8?"#5a7a4a":s>=6?"#8a7a3a":"#8a4a3a";}
+function hasScore(s){return s!==""&&s!=null;}
+function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e;}
+function inp(ph,value,type){
+  var e=document.createElement("input");
+  e.type=type||"text";e.placeholder=ph||"";e.value=(value!=null)?value:"";
+  if(type==="number"){e.step="any";e.setAttribute("inputmode","decimal");}
+  return e;
+}
+function ta(ph,value,rows){var e=document.createElement("textarea");e.rows=rows||2;e.placeholder=ph||"";e.value=value||"";return e;}
+function fld(label,child,hint){
+  var w=el("div","fld");w.appendChild(el("div","fld-lbl",label));w.appendChild(child);
+  if(hint){var h=el("div","hint",hint);h.style.margin="4px 0 0";w.appendChild(h);}
+  return w;
+}
+function sec(title){var s=el("div","sec");s.appendChild(el("div","sec-title",title));for(var i=1;i<arguments.length;i++){if(arguments[i])s.appendChild(arguments[i]);}return s;}
+function grid2(){var g=el("div","grid2");for(var i=0;i<arguments.length;i++)g.appendChild(arguments[i]);return g;}
+function bindText(obj,key,ph,rows){var e=rows?ta(ph,obj[key],rows):inp(ph,obj[key]);e.oninput=function(){obj[key]=this.value;};return e;}
+function bindNum(obj,key,ph,after){var e=inp(ph,obj[key],"number");e.oninput=function(){obj[key]=this.value;if(after)after();};return e;}
+function showToast(msg){var t=el("div","toast",msg);document.body.appendChild(t);setTimeout(function(){if(t.parentNode)t.parentNode.removeChild(t);},2800);}
+function showNotice(msg){var n=el("div","notice",msg);document.body.appendChild(n);return function(){if(n.parentNode)n.parentNode.removeChild(n);};}
+function showLightbox(src){
+  // Direct DOM overlay (no re-render) so unsaved form edits are never lost.
+  var o=el("div","overlay");var img=document.createElement("img");img.src=src;o.appendChild(img);
+  var b=el("button","lb-close","✕");o.appendChild(b);
+  function close(){if(o.parentNode)o.parentNode.removeChild(o);}
+  b.onclick=close;o.onclick=function(ev){if(ev.target===o)close();};
+  document.body.appendChild(o);
+}
+
+// ── State ────────────────────────────────────────────────────────────────────
+var savedBook=null;try{savedBook=localStorage.getItem(BOOK_KEY);}catch(e){}
+var state={
+  book: savedBook==="yum"?"yum":"crumb",
+  bakes: lsGet(BAKE_KEY,[]), grains: lsGet(GRAIN_KEY,[]), recipes: lsGet(RECIPE_KEY,[]),
+  yEntries: lsGet(YENTRY_KEY,[]), yRecipes: lsGet(YRECIPE_KEY,[]),
+  view: null, selected:null, isNew:false,
+  selectedGrain:null, isNewGrain:false,
+  selectedRecipe:null, isNewRecipe:false, recipeDetail:null,
+  yFilter:"All", yrFilter:"All",
+  photoCache:{}
+};
+state.view = state.book==="crumb"?"list":"yList";
+function setState(patch){for(var k in patch){if(patch.hasOwnProperty(k))state[k]=patch[k];}render();}
+function switchBook(book){try{localStorage.setItem(BOOK_KEY,book);}catch(e){}setState({book:book,view:book==="crumb"?"list":"yList"});window.scrollTo(0,0);}
+function getRecipes(book){return book==="crumb"?state.recipes:state.yRecipes;}
+function setRecipes(book,list){if(book==="crumb"){state.recipes=list;lsSet(RECIPE_KEY,list);}else{state.yRecipes=list;lsSet(YRECIPE_KEY,list);}}
+function recipeViews(book){return book==="crumb"?{list:"recipes",form:"recipeForm",detail:"recipeDetail"}:{list:"yRecipes",form:"yRecipeForm",detail:"yRecipeDetail"};}
+
+// =============================================================================
+// BAKER'S MATH
+// Total flour = mix flours + levain feed flours + starter flours
+// Total water = mix water + bassinage water + levain feed water + starter water
+// Pass 1 % = TOTAL dough hydration after the first water addition (levain included)
+//   → water to add at mix = pass1% × total flour − water already in levain
+// Bassinage % = additional water as % of total flour
+//   → bassinage water = bassinage% × total flour
+// =============================================================================
+function newSourdoughLevain(){return {buildHr:5,starter:{flours:[{name:"Hard White Wheat",grams:8}],waterG:8},flours:[{name:"Hard White Wheat",grams:32}],waterG:16};}
+
+// Upgrade older bakes (levain stored as free-text components) to the structured levain.
+// Idempotent and non-destructive: water grams you logged stay the source of truth.
+function normalizeBake(b){
+  if(!b||b.format==="freeform")return b;
+  if(!b.flours)b.flours=[];
+  for(var i=0;i<b.flours.length;i++){if(!b.flours[i].sifted)b.flours[i].sifted="No";if(b.flours[i].extraction==null)b.flours[i].extraction="";}
+  if(!b.levain){b.levain={buildHr:"",starter:{flours:[],waterG:""},flours:[],waterG:""};}
+  else if(!b.levain.starter){
+    var old=b.levain.components||[];
+    var lev={buildHr:b.levain.buildHr!=null?b.levain.buildHr:"",starter:{flours:[],waterG:0},flours:[],waterG:0};
+    for(var j=0;j<old.length;j++){
+      var n=(old[j].name||"").toLowerCase(),g=num(old[j].grams);
+      if(!g&&!n)continue;
+      if(n.indexOf("water")>=0){lev.waterG=round1(lev.waterG+g);}
+      else if(n.indexOf("starter")>=0||n.indexOf("levain")>=0){
+        // Assume 100% hydration starter: half flour, half water
+        lev.starter.flours.push({name:"Starter flour",grams:round1(g/2)});
+        lev.starter.waterG=round1(lev.starter.waterG+g/2);
+      } else {lev.flours.push({name:old[j].name,grams:g});}
+    }
+    b.levain=lev;
+  }
+  if(!b.levain.starter.flours)b.levain.starter.flours=[];
+  if(!b.levain.flours)b.levain.flours=[];
+  if(!b.otherIngredients)b.otherIngredients=[];
+  if(!b.mixins)b.mixins=[];
+  if(!b.toppings)b.toppings=[];
+  return b;
+}
+function sumGrams(list){var t=0;for(var i=0;i<(list||[]).length;i++)t+=num(list[i].grams);return t;}
+function levainFlourList(b){var L=b.levain||{},S=L.starter||{};return (L.flours||[]).concat(S.flours||[]);}
+function levainFlourG(b){return sumGrams(levainFlourList(b));}
+function levainWaterG(b){var L=b.levain||{};return num(L.waterG)+num((L.starter||{}).waterG);}
+function levainTotalG(b){return levainFlourG(b)+levainWaterG(b);}
+function mixFlourG(b){return sumGrams(b.flours);}
+function totalFlourG(b){if(b.format==="freeform")return 0;return mixFlourG(b)+levainFlourG(b);}
+function totalWaterG(b){return num(b.water1G)+num(b.water2G)+levainWaterG(b);}
+function totalHydration(b){var tf=totalFlourG(b);return tf?round1(totalWaterG(b)/tf*100):0;}
+function bakersPct(g,tf){return tf?round1(num(g)/tf*100):0;}
+// Loose name match so "Hard White Wheat flour" and "Hard White Wheat (fresh-milled)" count as one grain
+function flourKey(name){
+  var k=(name||"").toLowerCase().replace(/\([^)]*\)/g," ").replace(/\b(fresh[\s-]*milled|freshly[\s-]*milled|fmf|flour|whole[\s-]*grain|organic)\b/g," ").replace(/[^a-z0-9]+/g," ").trim();
+  return k||(name||"unnamed").toLowerCase().trim();
+}
+// Merge mix + levain flours so the blend reflects the whole loaf
+function combinedBlend(b){
+  var all=(b.flours||[]).concat(levainFlourList(b)),map={},order=[];
+  for(var i=0;i<all.length;i++){
+    var g=num(all[i].grams);if(!g)continue;
+    var nm=(all[i].name||"Unnamed flour").trim(),k=flourKey(nm);
+    if(!map[k]){map[k]={name:nm,grams:0};order.push(k);}
+    map[k].grams+=g;
+  }
+  var tf=totalFlourG(b),out=[];
+  for(var j=0;j<order.length;j++){var it=map[order[j]];out.push({name:it.name,grams:round1(it.grams),pct:tf?Math.round(it.grams/tf*100):0});}
+  return out;
+}
+function recalcWater(f){
+  var tf=totalFlourG(f),lw=levainWaterG(f);
+  f.water1G=Math.max(0,Math.round(num(f.hydration1Pct)/100*tf-lw));
+  f.water2G=Math.max(0,Math.round(num(f.hydration2Pct)/100*tf));
+}
+function derivePcts(f){
+  var tf=totalFlourG(f);if(!tf)return;
+  f.hydration1Pct=round1((num(f.water1G)+levainWaterG(f))/tf*100);
+  f.hydration2Pct=round1(num(f.water2G)/tf*100);
+}
+function bakeTitle(b){
+  var t="Test #"+b.testNum;
+  if(b.title)t+=" · "+b.title;else if(b.format==="freeform"&&b.freeTitle)t+=" · "+b.freeTitle;
+  return t;
+}
+
+// ── Stats bar ────────────────────────────────────────────────────────────────
+function renderStatsInto(box,f){
+  box.innerHTML="";
+  var tf=totalFlourG(f),tw=totalWaterG(f),mix=mixFlourG(f),lev=levainTotalG(f),lf=levainFlourG(f),salt=num(f.saltG);
+  var other=0;for(var i=0;i<(f.otherIngredients||[]).length;i++)other+=num(f.otherIngredients[i].amount);
+  var items=[
+    ["Hydration",tf?round1(tw/tf*100)+"%":"—",round1(tw)+"g water",""],
+    ["Total flour",round1(tf)+"g","mix + levain",""],
+    ["Salt",tf?round1(salt/tf*100)+"%":"—",salt+"g",""],
+    ["Levain",round1(lev)+"g",mix?round1(lev/mix*100)+"% of mix flour":"","wide"],
+    ["Prefermented",tf?round1(lf/tf*100)+"%":"—","of total flour",""],
+    ["Dough weight",Math.round(tf+tw+salt+other)+"g","before mix-ins","wide"]
+  ];
+  for(var j=0;j<items.length;j++){
+    var s=el("div","stat"+(items[j][3]?" "+items[j][3]:""));
+    s.appendChild(el("div","stat-lbl",items[j][0]));
+    s.appendChild(el("div","stat-val",items[j][1]));
+    if(items[j][2])s.appendChild(el("div","stat-sub",items[j][2]));
+    box.appendChild(s);
+  }
+}
+
+// =============================================================================
+// SHARED EDITORS
+// =============================================================================
+
+// Parse "500g flour", "Flour 500g", "Flour - 500g", "Flour: 2 tbsp", "1 cup milk"
+function parseIngredientLine(line){
+  line=line.replace(/^\s*(?:[-•*]|\d+[.)])\s+/,"").trim();
+  if(!line)return null;
+  var unit="(?:g|kg|ml|l|tbsp|tsp|cups?|oz|lbs?|%|grams?|cloves?|pinch|bunch|cans?)";
+  var endMatch=line.match(new RegExp("^(.*?)[\\s\\-–:]+(\\d[\\d.,\\/]*\\s*"+unit+"?)\\s*$","i"));
+  if(endMatch&&endMatch[1].trim())return {name:endMatch[1].trim().replace(/[\-–:,]+$/,"").trim(),amount:endMatch[2].trim()};
+  var startMatch=line.match(new RegExp("^(\\d[\\d.,\\/]*\\s*"+unit+"?)\\s+(.+)$","i"));
+  if(startMatch&&startMatch[2].trim())return {name:startMatch[2].trim(),amount:startMatch[1].trim()};
+  return {name:line,amount:""};
+}
+
+function showPasteModal(title,hint,onDone){
+  var o=el("div","overlay"),m=el("div","modal");
+  m.appendChild(el("div","modal-title",title));
+  m.appendChild(el("div","modal-text",hint));
+  var t=ta("Paste here — one item per line","",8);t.style.marginBottom="12px";m.appendChild(t);
+  var row=el("div","modal-btns");
+  var cancel=el("button","btn-ghost","Cancel"),add=el("button","btn-primary","Add items");
+  function close(){if(o.parentNode)o.parentNode.removeChild(o);}
+  cancel.onclick=close;
+  add.onclick=function(){var lines=t.value.split(/\n/),out=[];for(var i=0;i<lines.length;i++){if(lines[i].trim())out.push(lines[i].trim());}close();if(out.length)onDone(out);};
+  row.appendChild(cancel);row.appendChild(add);m.appendChild(row);o.appendChild(m);
+  o.onclick=function(ev){if(ev.target===o)close();};
+  document.body.appendChild(o);setTimeout(function(){t.focus();},100);
+}
+
+// Two-column rows (name + amount). Rebuilds only on add/remove, never while typing.
+function renderRowEditor(items,opts){
+  var wrap=el("div"),c1=opts.col1key||"name",c2=opts.col2key||"amount";
+  function changed(){if(opts.onChange)opts.onChange();}
+  function rebuild(){
+    wrap.innerHTML="";
+    for(var i=0;i<items.length;i++){(function(idx){
+      var row=el("div","row-wrap");
+      var a=inp(opts.col1ph||"",items[idx][c1]);a.oninput=function(){items[idx][c1]=this.value;changed();};
+      var b=inp(opts.col2ph||"",items[idx][c2],opts.col2type||"text");if(opts.col2cls)b.className=opts.col2cls;b.oninput=function(){items[idx][c2]=this.value;changed();};
+      var rb=el("button","remove-btn","×");rb.onclick=function(){items.splice(idx,1);rebuild();changed();};
+      row.appendChild(a);row.appendChild(b);row.appendChild(rb);wrap.appendChild(row);
+    })(i);}
+    var br=el("div","btn-row");
+    var ab=el("button","add-row-btn","+ "+(opts.addLabel||"Add"));
+    ab.onclick=function(){var o={};o[c1]="";o[c2]="";items.push(o);rebuild();};br.appendChild(ab);
+    if(opts.allowPaste){
+      var pb=el("button","add-row-btn","📋 Paste list");
+      pb.onclick=function(){showPasteModal("Paste "+(opts.pasteTitle||"items"),"One item per line. Amounts like '500g' or '2 tbsp' are detected automatically, and you can fix any line afterwards.",function(lines){
+        for(var i=0;i<lines.length;i++){var p=parseIngredientLine(lines[i]);if(p){var o={};o[c1]=p.name;o[c2]=p.amount;items.push(o);}}
+        rebuild();changed();
+      });};
+      br.appendChild(pb);
+    }
+    wrap.appendChild(br);
+  }
+  rebuild();return wrap;
+}
+
+function renderStepsEditor(steps){
+  var wrap=el("div");
+  function rebuild(){
+    wrap.innerHTML="";
+    for(var i=0;i<steps.length;i++){(function(idx){
+      var row=el("div","row-wrap");row.style.alignItems="flex-start";
+      var n=el("span",null,(idx+1)+".");n.style.cssText="flex-shrink:0;font-size:14px;color:#8a7060;min-width:20px;padding-top:9px";
+      var t=ta("Describe this step…",steps[idx].text,2);t.style.flex="1";t.oninput=function(){steps[idx].text=this.value;};
+      var rb=el("button","remove-btn","×");rb.style.paddingTop="6px";rb.onclick=function(){steps.splice(idx,1);rebuild();};
+      row.appendChild(n);row.appendChild(t);row.appendChild(rb);wrap.appendChild(row);
+    })(i);}
+    var br=el("div","btn-row");
+    var ab=el("button","add-row-btn","+ Add step");ab.onclick=function(){steps.push({text:""});rebuild();};br.appendChild(ab);
+    var pb=el("button","add-row-btn","📋 Paste steps");
+    pb.onclick=function(){showPasteModal("Paste steps","One step per line. Numbering like '1.' or '2)' is stripped automatically.",function(lines){
+      for(var i=0;i<lines.length;i++){var c=lines[i].replace(/^\s*(?:[-•*]|\d+[.)])\s+/,"").trim();if(c)steps.push({text:c});}
+      rebuild();
+    });};
+    br.appendChild(pb);wrap.appendChild(br);
+  }
+  rebuild();return wrap;
+}
+
+function renderPhotoEditor(photos){
+  var wrap=el("div");
+  function rebuild(){
+    wrap.innerHTML="";
+    if(photos.length){
+      var grid=el("div","photo-grid");
+      for(var i=0;i<photos.length;i++){(function(idx,src){
+        var pw=el("div","photo-wrap");
+        var img=document.createElement("img");img.className="photo-edit-thumb";img.src=src;img.onclick=function(){showLightbox(src);};
+        var x=el("button","photo-x","✕");x.onclick=function(){photos.splice(idx,1);rebuild();};
+        pw.appendChild(img);pw.appendChild(x);grid.appendChild(pw);
+      })(i,photos[i]);}
+      wrap.appendChild(grid);
+    }
+    // iOS standalone mode needs the tap to land directly on the input, so it sits inside a label
+    var label=document.createElement("label");label.className="add-photo-btn";
+    var icon=el("span",null,"📷");icon.style.fontSize="17px";label.appendChild(icon);
+    label.appendChild(document.createTextNode(photos.length?"Add more photos":"Add photo"));
+    var fi=document.createElement("input");fi.type="file";fi.accept="image/*";fi.multiple=true;
+    fi.style.cssText="position:absolute;width:1px;height:1px;opacity:.01;overflow:hidden";
+    fi.onchange=function(){
+      var files=fi.files;if(!files||!files.length)return;
+      var pending=files.length;
+      for(var i=0;i<files.length;i++){compressImage(files[i],function(data){if(data)photos.push(data);pending--;if(pending===0)rebuild();});}
+    };
+    label.appendChild(fi);wrap.appendChild(label);
+  }
+  rebuild();return wrap;
+}
+function compressImage(file,cb){
+  var r=new FileReader();
+  r.onload=function(){
+    var img=new Image();
+    img.onload=function(){
+      var MAX=900,w=img.width,h=img.height;
+      if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}if(h>MAX){w=Math.round(w*MAX/h);h=MAX;}
+      var c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(img,0,0,w,h);
+      cb(c.toDataURL("image/jpeg",0.75));
+    };
+    img.onerror=function(){cb(null);};
+    img.src=r.result;
+  };
+  r.onerror=function(){cb(null);};
+  r.readAsDataURL(file);
+}
+
+function renderScorePicker(form,key){
+  var row=el("div","score-row");
+  function paint(){
+    var btns=row.querySelectorAll(".score-btn");
+    for(var i=0;i<btns.length;i++){
+      var n=i+1,a=num(form[key])===n&&hasScore(form[key]);
+      btns[i].style.background=a?scoreBg(n):"#fdf8f3";btns[i].style.color=a?scoreCol(n):"#8a7060";
+      btns[i].style.borderColor=a?"#7a5a3a":"#d4c4b4";btns[i].style.borderWidth=a?"2.5px":"1.5px";
+    }
+  }
+  for(var n=1;n<=10;n++){(function(v){
+    var b=el("button","score-btn",String(v));
+    b.onclick=function(){form[key]=(num(form[key])===v)?"":v;paint();};
+    row.appendChild(b);
+  })(n);}
+  paint();return row;
+}
+
+function renderCategoryPicker(form){
+  var row=el("div","chips");
+  for(var i=0;i<CATEGORIES.length;i++){(function(c){
+    var b=el("button","chip"+(form.category===c?" active":""),c);
+    b.onclick=function(){form.category=(form.category===c)?"":c;var all=row.querySelectorAll(".chip");for(var j=0;j<all.length;j++)all[j].className="chip"+(CATEGORIES[j]===form.category?" active":"");};
+    row.appendChild(b);
+  })(CATEGORIES[i]);}
+  return row;
+}
+
+function renderLearnings(form){
+  return sec("Learnings",
+    fld("Key issue / observation",bindText(form,"keyIssue","What went wrong or stood out?",2)),
+    fld("What to change or try next",bindText(form,"nextChange","Next thing to try…",2)),
+    fld("Other notes",bindText(form,"notes","Anything else…",3)),
+    fld("Score (1–10)",renderScorePicker(form,"score"))
+  );
+}
+
+function formHeader(title,subtitle,onClose){
+  var top=el("div","form-top"),left=el("div");
+  left.appendChild(el("div","form-title",title));
+  if(subtitle)left.appendChild(el("div","form-subtitle",subtitle));
+  top.appendChild(left);
+  var cb=el("button","close-btn","✕");cb.onclick=onClose;top.appendChild(cb);
+  return top;
+}
+function btn(cls,label,fn){var b=el("button",cls,label);b.onclick=fn;return b;}
+
+// =============================================================================
+// CRUMB JOURNAL — SOURDOUGH FORM
+// =============================================================================
+function makeGramRows(list,ph,addLabel,onChange){
+  var wrap=el("div");
+  function rebuild(){
+    wrap.innerHTML="";
+    for(var i=0;i<list.length;i++){(function(idx){
+      var row=el("div","row-wrap");
+      var a=inp(ph,list[idx].name);a.oninput=function(){list[idx].name=this.value;onChange();};
+      var b=inp("g",list[idx].grams,"number");b.className="grams";b.oninput=function(){list[idx].grams=this.value;onChange();};
+      var rb=el("button","remove-btn","×");rb.onclick=function(){list.splice(idx,1);rebuild();onChange();};
+      row.appendChild(a);row.appendChild(b);row.appendChild(rb);wrap.appendChild(row);
+    })(i);}
+    var ab=el("button","add-row-btn","+ "+addLabel);ab.onclick=function(){list.push({name:"",grams:""});rebuild();};
+    wrap.appendChild(ab);
+  }
+  rebuild();return wrap;
+}
+
+function renderLevainEditor(form,onChange){
+  var L=form.levain,wrap=el("div");
+  var sumEl=el("div","levain-check");
+  function upd(){
+    var lf=levainFlourG(form),lw=levainWaterG(form);
+    sumEl.innerHTML="";
+    sumEl.appendChild(el("span",null,"Levain total"));
+    sumEl.appendChild(el("strong",null,round1(lf+lw)+"g · "+round1(lf)+"g flour / "+round1(lw)+"g water"+(lf?" · "+Math.round(lw/lf*100)+"% hyd.":"")));
+  }
+  function changed(){upd();onChange();}
+  wrap.appendChild(fld("Build time (hr)",bindNum(L,"buildHr","hr")));
+  wrap.appendChild(el("div","sub-hdr","Starter used"));
+  wrap.appendChild(el("div","hint","The flour and water inside the starter you added, e.g. 16g of 100% starter = 8g flour + 8g water."));
+  wrap.appendChild(makeGramRows(L.starter.flours,"Starter flour, e.g. Whole rye","Add starter flour",changed));
+  var sw=inp("g",L.starter.waterG,"number");sw.oninput=function(){L.starter.waterG=this.value;changed();};
+  wrap.appendChild(fld("Starter water (g)",sw));
+  wrap.appendChild(el("div","sub-hdr","Levain feed"));
+  wrap.appendChild(makeGramRows(L.flours,"Flour, e.g. Hard white wheat","Add feed flour",changed));
+  var fw=inp("g",L.waterG,"number");fw.oninput=function(){L.waterG=this.value;changed();};
+  wrap.appendChild(fld("Feed water (g)",fw));
+  wrap.appendChild(sumEl);upd();
+  return wrap;
+}
+
+function renderFlourEditor(form,onChange){
+  var wrap=el("div"),blendEl=null;
+  function updateBlend(){
+    if(!blendEl)return;blendEl.innerHTML="";
+    var bl=combinedBlend(form);
+    if(!bl.length){blendEl.style.display="none";return;}
+    blendEl.style.display="flex";
+    for(var i=0;i<bl.length;i++)blendEl.appendChild(el("span","blend-tag",bl[i].pct+"% "+bl[i].name));
+    blendEl.appendChild(el("span","total-tag",round1(totalFlourG(form))+"g total incl. levain"));
+  }
+  function rebuild(){
+    wrap.innerHTML="";
+    for(var i=0;i<form.flours.length;i++){(function(idx){
+      var f=form.flours[idx],block=el("div","flour-block");
+      var row=el("div","row-wrap");row.style.marginBottom="0";
+      var a=inp("Grain / flour name",f.name);a.oninput=function(){f.name=this.value;updateBlend();};
+      var b=inp("g",f.grams,"number");b.className="grams";b.oninput=function(){f.grams=this.value;onChange();};
+      row.appendChild(a);row.appendChild(b);
+      if(form.flours.length>1){var rb=el("button","remove-btn","×");rb.onclick=function(){form.flours.splice(idx,1);rebuild();onChange();};row.appendChild(rb);}
+      block.appendChild(row);
+      var sr=el("div","sift-inline");sr.appendChild(el("span","sift-lbl","Sifted?"));
+      var opts=["No","Yes"];
+      for(var s=0;s<opts.length;s++){(function(opt){
+        var sb=el("button","sift-tog"+(f.sifted===opt?" active":""),opt);
+        sb.onclick=function(){f.sifted=opt;rebuild();};sr.appendChild(sb);
+      })(opts[s]);}
+      block.appendChild(sr);
+      if(f.sifted==="Yes"){
+        var ew=el("div","extraction-wrap");
+        var e=inp("e.g. 85",f.extraction,"number");e.oninput=function(){f.extraction=this.value;};
+        ew.appendChild(e);ew.appendChild(el("span","extraction-lbl","% extraction"));block.appendChild(ew);
+      }
+      wrap.appendChild(block);
+    })(i);}
+    var ab=el("button","add-row-btn","+ Add flour");ab.onclick=function(){form.flours.push({name:"",grams:"",sifted:"No",extraction:""});rebuild();};
+    wrap.appendChild(ab);
+    blendEl=el("div","blend-tags");wrap.appendChild(blendEl);updateBlend();
+  }
+  wrap._updateBlend=function(){updateBlend();};
+  rebuild();return wrap;
+}
+
+function renderSourdoughForm(bake,isNew){
+  var form=normalizeBake(deepCopy(bake));
+  if(!form.flours.length)form.flours.push({name:"",grams:"",sifted:"No",extraction:""});
+  var pk=form.id?bakeKey(form.id):null;
+  var photos=(pk&&state.photoCache[pk])?state.photoCache[pk].slice():[];
+  // Existing bakes: logged water grams are the truth, derive %; new bakes: derive grams from %
+  if(form.water1G===""||form.water1G==null)recalcWater(form);else derivePcts(form);
+
+  var wrap=el("div","form-wrap");
+  wrap.appendChild(formHeader(isNew?"New Bake":bakeTitle(form),"Sourdough loaf",function(){setState({view:"list"});}));
+
+  var statsEl=el("div","stats-grid");wrap.appendChild(statsEl);
+  var h1El,w1El,h2El,w2El,flourEd;
+  function renderStats(){renderStatsInto(statsEl,form);}
+  // New bakes: your target % drives the water. Logged bakes: the water you actually added
+  // stays fixed and the % is re-derived when you edit flour or levain.
+  function refresh(){
+    if(isNew){recalcWater(form);if(w1El)w1El.value=form.water1G;if(w2El)w2El.value=form.water2G;}
+    else{derivePcts(form);if(h1El)h1El.value=form.hydration1Pct;if(h2El)h2El.value=form.hydration2Pct;}
+    renderStats();if(flourEd)flourEd._updateBlend();
+  }
+  function pctEdited(){recalcWater(form);if(w1El)w1El.value=form.water1G;if(w2El)w2El.value=form.water2G;renderStats();}
+
+  // Basics
+  wrap.appendChild(sec("Basics",
+    grid2(fld("Test #",bindNum(form,"testNum","#")),fld("Date",(function(){var e=inp("",form.date,"month");e.oninput=function(){form.date=this.value;};return e;})())),
+    fld("Title / category (optional)",bindText(form,"title","e.g. Jalapeño cheddar, 2hr autolyse test"))
+  ));
+  wrap.appendChild(sec("Photos",renderPhotoEditor(photos)));
+
+  // Levain → flour → hydration
+  wrap.appendChild(sec("Levain build",renderLevainEditor(form,refresh)));
+  flourEd=renderFlourEditor(form,refresh);
+  wrap.appendChild(sec("Flour blend (mix)",flourEd));
+
+  h1El=inp("%",form.hydration1Pct,"number");
+  h1El.oninput=function(){form.hydration1Pct=this.value;pctEdited();};
+  w1El=inp("g",form.water1G,"number");
+  w1El.oninput=function(){form.water1G=this.value;var tf=totalFlourG(form);if(tf){form.hydration1Pct=round1((num(form.water1G)+levainWaterG(form))/tf*100);h1El.value=form.hydration1Pct;}renderStats();};
+  h2El=inp("%",form.hydration2Pct,"number");
+  h2El.oninput=function(){form.hydration2Pct=this.value;pctEdited();};
+  w2El=inp("g",form.water2G,"number");
+  w2El.oninput=function(){form.water2G=this.value;var tf=totalFlourG(form);if(tf){form.hydration2Pct=round1(num(form.water2G)/tf*100);h2El.value=form.hydration2Pct;}renderStats();};
+  var hint=el("div","hint","Hydration % is total dough hydration (levain included). Water to add = % × total flour − water already in the levain. Bassinage % is added on top.");
+  hint.style.margin="0 0 10px";
+  var saltEl=bindNum(form,"saltG","g",renderStats);
+  var otherEl=renderRowEditor(form.otherIngredients,{col1ph:"e.g. Honey, Milk, Olive oil",col2ph:"g",col2cls:"grams",col2type:"number",addLabel:"Add ingredient",allowPaste:true,pasteTitle:"ingredients",onChange:renderStats});
+  wrap.appendChild(sec("Hydration & salt",hint,
+    grid2(fld("Hydration (%)",h1El),fld("Water at mix (g)",w1El)),
+    grid2(fld("Bassinage (+%)",h2El),fld("Bassinage water (g)",w2El)),
+    fld("Salt (g)",saltEl),
+    fld("Other ingredients (g)",otherEl)
+  ));
+
+  wrap.appendChild(sec("Mix-ins & toppings",
+    fld("Mix-ins (folded in)",renderRowEditor(form.mixins,{col1ph:"e.g. Jalapeño, Cheddar",col2ph:"e.g. 80g",col2cls:"amt",addLabel:"Add mix-in",allowPaste:true,pasteTitle:"mix-ins"})),
+    fld("Toppings (on crust)",renderRowEditor(form.toppings,{col1ph:"e.g. Sesame seeds",col2ph:"e.g. 2 tbsp",col2cls:"amt",addLabel:"Add topping",allowPaste:true,pasteTitle:"toppings"}))
+  ));
+
+  wrap.appendChild(sec("Mixing & bulk",
+    fld("Autolyse (hr)",bindNum(form,"autolyseHr","hr")),
+    grid2(fld("Slap & fold (min)",bindNum(form,"slapFoldMin","min")),fld("Stretch & folds (#)",bindNum(form,"stretchFolds","#"))),
+    fld("Bulk ferment (hr)",bindNum(form,"bulkHr","hr")),
+    fld("Other / notes",bindText(form,"bulkOther","e.g. Lamination, coil folds…",2)),
+    fld("Retard",bindText(form,"retard","e.g. Overnight, 14 hr at 38°F"))
+  ));
+  wrap.appendChild(sec("Temperatures (°F)",
+    fld("Ambient / house",bindNum(form,"ambientTempF","e.g. 74")),
+    grid2(fld("At autolyse",bindNum(form,"autolyseTempF","e.g. 72")),fld("Bulk start",bindNum(form,"bulkStartTempF","e.g. 76"))),
+    fld("Bulk end",bindNum(form,"bulkEndTempF","e.g. 78"))
+  ));
+  wrap.appendChild(sec("Bake",grid2(fld("Temp (°F)",bindNum(form,"bakeTempF","°F")),fld("Time (min)",bindNum(form,"bakeTimeMin","min")))));
+  wrap.appendChild(sec("Results",
+    fld("Oven spring / ear",bindText(form,"ovenSpring","Good ear, opened well")),
+    fld("Crumb",bindText(form,"crumb","Open, irregular holes…",2)),
+    fld("Crust",bindText(form,"crust","Dark, crisp")),
+    fld("Taste",bindText(form,"taste","Nutty, mild tang…",2))
+  ));
+  wrap.appendChild(renderLearnings(form));
+
+  appendBakeButtons(wrap,form,photos,isNew);
+  renderStats();
+  return wrap;
+}
+
+function appendBakeButtons(wrap,form,photos,isNew){
+  wrap.appendChild(btn("save-btn","Save Bake",function(){persistBake(form,photos,function(){setState({view:"list"});});}));
+  wrap.appendChild(btn("secondary-btn","📖 Save as recipe",function(){saveAsRecipe("crumb",form,photos);}));
+  if(!isNew){
+    wrap.appendChild(btn("secondary-btn","Duplicate as new test",function(){duplicateBake(form);}));
+    wrap.appendChild(btn("del-btn","Delete this bake",function(){
+      if(!window.confirm("Delete this bake?"))return;
+      var nb=[];for(var i=0;i<state.bakes.length;i++){if(state.bakes[i].id!==form.id)nb.push(state.bakes[i]);}
+      state.bakes=nb;renumberBakes();lsSet(BAKE_KEY,nb);var k=bakeKey(form.id);delete state.photoCache[k];
+      deletePhotosK(k,function(){setState({bakes:nb,view:"list"});});
+    }));
+  }
+}
+
+function persistBake(form,photos,cb){
+  var saved=deepCopy(form);saved.id=saved.id||Date.now();
+  var bakes=state.bakes.slice(),idx=-1;
+  for(var i=0;i<bakes.length;i++){if(bakes[i].id===saved.id){idx=i;break;}}
+  if(idx>=0)bakes[idx]=saved;else bakes.push(saved);
+  if(!lsSet(BAKE_KEY,bakes))return;
+  state.bakes=bakes;
+  var k=bakeKey(saved.id);state.photoCache[k]=photos.slice();
+  savePhotosK(k,photos,function(){cb(saved);});
+}
+
+// Keep test numbers gap-free (1..n) in their existing order — runs at startup and after a delete
+function renumberBakes(){
+  var sorted=state.bakes.slice().sort(function(a,b){return (num(a.testNum)-num(b.testNum))||(num(a.id)-num(b.id));});
+  var changed=false;
+  for(var i=0;i<sorted.length;i++){if(num(sorted[i].testNum)!==i+1){sorted[i].testNum=i+1;changed=true;}}
+  if(changed)lsSet(BAKE_KEY,state.bakes);
+}
+function nextTestNum(){var n=1;for(var i=0;i<state.bakes.length;i++){var t=num(state.bakes[i].testNum);if(t>=n)n=t+1;}return n;}
+
+function duplicateBake(source){
+  var d=deepCopy(source);
+  d.id=null;d.testNum=nextTestNum();d.date=todayMonth();
+  d.score="";d.keyIssue="";d.nextChange="";d.notes="";d.ovenSpring="";d.crumb="";d.crust="";d.taste="";
+  d.ambientTempF="";d.autolyseTempF="";d.bulkStartTempF="";d.bulkEndTempF="";
+  setState({view:d.format==="freeform"?"formFreeform":"form",selected:d,isNew:true});
+  window.scrollTo(0,0);
+}
+
+// ── Freeform bake form ───────────────────────────────────────────────────────
+function renderFreeformForm(bake,isNew){
+  var form=deepCopy(bake);
+  if(!form.freeIngredients)form.freeIngredients=[];if(!form.freeSteps)form.freeSteps=[];
+  var pk=form.id?bakeKey(form.id):null;
+  var photos=(pk&&state.photoCache[pk])?state.photoCache[pk].slice():[];
+  var wrap=el("div","form-wrap");
+  wrap.appendChild(formHeader(isNew?"New Bake":bakeTitle(form),"Freeform",function(){setState({view:"list"});}));
+  wrap.appendChild(sec("Basics",
+    grid2(fld("Test #",bindNum(form,"testNum","#")),fld("Date",(function(){var e=inp("",form.date,"month");e.oninput=function(){form.date=this.value;};return e;})())),
+    fld("What did you make?",bindText(form,"freeTitle","e.g. Rosemary focaccia"))
+  ));
+  wrap.appendChild(sec("Photos",renderPhotoEditor(photos)));
+  wrap.appendChild(sec("Ingredients",renderRowEditor(form.freeIngredients,{col1ph:"Ingredient",col2ph:"Amount",col2cls:"amt",addLabel:"Add ingredient",allowPaste:true,pasteTitle:"ingredients"})));
+  wrap.appendChild(sec("Method",renderStepsEditor(form.freeSteps)));
+  wrap.appendChild(renderLearnings(form));
+  form.format="freeform";
+  appendBakeButtons(wrap,form,photos,isNew);
+  return wrap;
+}
+
+// ── Format picker ────────────────────────────────────────────────────────────
+function renderFormatPicker(){
+  var wrap=el("div","form-wrap");
+  wrap.appendChild(formHeader("New Bake",null,function(){setState({view:"list"});}));
+  var picker=el("div","format-picker");
+  var sd=el("div","format-card");
+  sd.appendChild(el("div","format-card-icon","🍞"));sd.appendChild(el("div","format-card-title","Sourdough loaf"));
+  sd.appendChild(el("div","format-card-desc","Full formula: levain, flour blend, hydration, bulk, temps"));
+  sd.onclick=function(){
+    setState({view:"form",isNew:true,selected:{id:null,format:"sourdough",date:todayMonth(),testNum:nextTestNum(),title:"",
+      flours:[{name:"Hard White Wheat (fresh-milled)",grams:428,sifted:"No",extraction:""}],
+      levain:newSourdoughLevain(),hydration1Pct:80,water1G:"",hydration2Pct:5,water2G:"",saltG:9,otherIngredients:[],mixins:[],toppings:[],
+      autolyseHr:1,slapFoldMin:5,stretchFolds:4,bulkHr:3.5,bulkOther:"",retard:"Overnight",
+      ambientTempF:"",autolyseTempF:"",bulkStartTempF:"",bulkEndTempF:"",bakeTempF:450,bakeTimeMin:45,
+      ovenSpring:"",crumb:"",crust:"",taste:"",score:"",keyIssue:"",nextChange:"",notes:""}});
+  };
+  var ff=el("div","format-card");
+  ff.appendChild(el("div","format-card-icon","📝"));ff.appendChild(el("div","format-card-title","Freeform bake"));
+  ff.appendChild(el("div","format-card-desc","Focaccia, bagels, cookies, pizza: ingredients + steps + notes"));
+  ff.onclick=function(){setState({view:"formFreeform",isNew:true,selected:{id:null,format:"freeform",date:todayMonth(),testNum:nextTestNum(),freeTitle:"",freeIngredients:[],freeSteps:[],score:"",keyIssue:"",nextChange:"",notes:""}});};
+  picker.appendChild(sd);picker.appendChild(ff);wrap.appendChild(picker);
+  wrap.appendChild(btn("format-cancel","Cancel",function(){setState({view:"list"});}));
+  return wrap;
+}
+
+// ── Bake card ────────────────────────────────────────────────────────────────
+function renderBakeCard(bake){
+  var b=normalizeBake(deepCopy(bake));
+  var card=el("div","card"),photos=state.photoCache[bakeKey(b.id)]||[];
+  if(photos.length){var hero=document.createElement("img");hero.className="card-img";hero.src=photos[0];hero.onclick=function(ev){ev.stopPropagation();showLightbox(photos[0]);};card.appendChild(hero);}
+  var body=el("div","card-body"),top=el("div","card-top"),left=el("div");
+  left.appendChild(el("span","card-title",bakeTitle(b)));
+  if(b.format==="freeform")left.appendChild(el("span","card-format","Freeform"));
+  left.appendChild(el("span","card-date",b.date||""));
+  top.appendChild(left);
+  if(hasScore(b.score)){var badge=el("span","badge",b.score+"/10");badge.style.background=scoreBg(b.score);badge.style.color=scoreCol(b.score);top.appendChild(badge);}
+  body.appendChild(top);
+  if(b.format!=="freeform"){
+    var bl=combinedBlend(b);
+    if(bl.length){var bt=el("div","blend-tags");for(var i=0;i<bl.length;i++)bt.appendChild(el("span","blend-tag",bl[i].pct+"% "+bl[i].name));body.appendChild(bt);}
+    var tags=el("div","tags"),tf=totalFlourG(b);
+    var tl=[round1(tf)+"g flour",totalHydration(b)+"% hydration"];
+    if(tf&&num(b.saltG))tl.push(bakersPct(b.saltG,tf)+"% salt");
+    if(num(b.autolyseHr))tl.push(b.autolyseHr+"hr autolyse");
+    if(num(b.bulkHr))tl.push(b.bulkHr+"hr bulk");
+    if(num(b.stretchFolds))tl.push(b.stretchFolds+"x S&F");
+    var mn=[];for(var m=0;m<b.mixins.length;m++){if(b.mixins[m].name)mn.push(b.mixins[m].name);}
+    if(mn.length)tl.push("Mix-ins: "+mn.join(", "));
+    for(var t=0;t<tl.length;t++)tags.appendChild(el("span","tag",tl[t]));
+    body.appendChild(tags);
+  }
+  appendThumbs(body,photos);
+  if(b.ovenSpring)body.appendChild(el("div","card-note","↑ "+b.ovenSpring));
+  card.appendChild(body);
+  card.onclick=function(){setState({view:bake.format==="freeform"?"formFreeform":"form",selected:deepCopy(bake),isNew:false});window.scrollTo(0,0);};
+  return card;
+}
+function appendThumbs(body,photos){
+  if(photos.length<2)return;
+  var th=el("div","thumbs");
+  for(var p=1;p<photos.length;p++){(function(src){var i=document.createElement("img");i.className="thumb";i.src=src;i.onclick=function(ev){ev.stopPropagation();showLightbox(src);};th.appendChild(i);})(photos[p]);}
+  body.appendChild(th);
+}
+
+// ── Grains ───────────────────────────────────────────────────────────────────
+function renderGrainCard(g){
+  var card=el("div","grain-card"),top=el("div","grain-top");
+  top.appendChild(el("div","grain-name",g.name||"Unnamed grain"));
+  if(hasScore(g.rating)){var b=el("span","badge",g.rating+"/10");b.style.background=scoreBg(g.rating);b.style.color=scoreCol(g.rating);top.appendChild(b);}
+  card.appendChild(top);
+  if(g.farm)card.appendChild(el("div","grain-farm",g.farm));
+  var tags=el("div","tags");
+  if(g.type)tags.appendChild(el("span","tag",g.type));if(g.origin)tags.appendChild(el("span","tag",g.origin));if(g.season)tags.appendChild(el("span","tag",g.season));
+  if(tags.children.length)card.appendChild(tags);
+  if(g.bestFor)card.appendChild(el("div","grain-best","Best for: "+g.bestFor));
+  if(g.tastingNotes)card.appendChild(el("div","grain-tasting","Tasting: "+g.tastingNotes));
+  card.onclick=function(){setState({view:"grainForm",selectedGrain:deepCopy(g),isNewGrain:false});window.scrollTo(0,0);};
+  return card;
+}
+function renderGrainForm(grain,isNew){
+  var form=deepCopy(grain),wrap=el("div","form-wrap");
+  wrap.appendChild(formHeader(isNew?"New Grain":(form.name||"Edit Grain"),null,function(){setState({view:"grains"});}));
+  wrap.appendChild(sec("Identity",
+    fld("Grain / flour name",bindText(form,"name","e.g. Hard Red Spring Wheat")),
+    grid2(fld("Farm / mill",bindText(form,"farm","e.g. Grist & Toll")),fld("Type",bindText(form,"type","e.g. Whole berry"))),
+    grid2(fld("Origin / region",bindText(form,"origin","e.g. Montana")),fld("Harvest season",bindText(form,"season","e.g. 2024")))
+  ));
+  wrap.appendChild(sec("Character",fld("Tasting notes",bindText(form,"tastingNotes","",2)),fld("Best used for",bindText(form,"bestFor","",2)),fld("Other notes",bindText(form,"notes","",3))));
+  wrap.appendChild(sec("Rating",fld("Overall rating (1–10)",renderScorePicker(form,"rating"))));
+  wrap.appendChild(btn("save-btn","Save Grain",function(){
+    var s=deepCopy(form);s.id=s.id||Date.now();var gs=state.grains.slice(),idx=-1;
+    for(var i=0;i<gs.length;i++){if(gs[i].id===s.id){idx=i;break;}}
+    if(idx>=0)gs[idx]=s;else gs.push(s);
+    if(lsSet(GRAIN_KEY,gs))setState({grains:gs,view:"grains"});
+  }));
+  if(!isNew)wrap.appendChild(btn("del-btn","Delete this grain",function(){
+    if(!window.confirm("Delete this grain?"))return;
+    var ng=[];for(var i=0;i<state.grains.length;i++){if(state.grains[i].id!==form.id)ng.push(state.grains[i]);}
+    lsSet(GRAIN_KEY,ng);setState({grains:ng,view:"grains"});
+  }));
+  return wrap;
+}
+
+// =============================================================================
+// YUM JOURNAL — FOOD ENTRIES
+// =============================================================================
+function renderYEntryForm(entry,isNew){
+  var form=deepCopy(entry);
+  if(!form.ingredients)form.ingredients=[];if(!form.steps)form.steps=[];
+  var pk=form.id?yEntryKey(form.id):null;
+  var photos=(pk&&state.photoCache[pk])?state.photoCache[pk].slice():[];
+  var wrap=el("div","form-wrap");
+  wrap.appendChild(formHeader(isNew?"New Entry":(form.title||"Entry"),"Yum Journal",function(){setState({view:"yList"});}));
+  var dateEl=inp("",form.date,"date");dateEl.oninput=function(){form.date=this.value;};
+  wrap.appendChild(sec("Basics",
+    fld("What did you make?",bindText(form,"title","e.g. Lemon chicken orzo")),
+    fld("Date",dateEl),
+    fld("Category",renderCategoryPicker(form)),
+    fld("Source (optional)",bindText(form,"source","Cookbook, blog, link, person…"))
+  ));
+  wrap.appendChild(sec("Photos",renderPhotoEditor(photos)));
+  wrap.appendChild(sec("Ingredients",renderRowEditor(form.ingredients,{col1ph:"Ingredient",col2ph:"Amount",col2cls:"amt",addLabel:"Add ingredient",allowPaste:true,pasteTitle:"ingredients"})));
+  wrap.appendChild(sec("Method",renderStepsEditor(form.steps)));
+  wrap.appendChild(renderLearnings(form));
+  wrap.appendChild(btn("save-btn","Save Entry",function(){persistYEntry(form,photos,function(){setState({view:"yList"});});}));
+  wrap.appendChild(btn("secondary-btn","📖 Save as recipe",function(){saveAsRecipe("yum",form,photos);}));
+  if(!isNew)wrap.appendChild(btn("del-btn","Delete this entry",function(){
+    if(!window.confirm("Delete this entry?"))return;
+    var ne=[];for(var i=0;i<state.yEntries.length;i++){if(state.yEntries[i].id!==form.id)ne.push(state.yEntries[i]);}
+    lsSet(YENTRY_KEY,ne);var k=yEntryKey(form.id);delete state.photoCache[k];
+    deletePhotosK(k,function(){setState({yEntries:ne,view:"yList"});});
+  }));
+  return wrap;
+}
+function persistYEntry(form,photos,cb){
+  var s=deepCopy(form);s.id=s.id||Date.now();
+  var list=state.yEntries.slice(),idx=-1;
+  for(var i=0;i<list.length;i++){if(list[i].id===s.id){idx=i;break;}}
+  if(idx>=0)list[idx]=s;else list.push(s);
+  if(!lsSet(YENTRY_KEY,list))return;
+  state.yEntries=list;
+  var k=yEntryKey(s.id);state.photoCache[k]=photos.slice();
+  savePhotosK(k,photos,function(){cb(s);});
+}
+function renderYEntryCard(e){
+  var card=el("div","card"),photos=state.photoCache[yEntryKey(e.id)]||[];
+  if(photos.length){var hero=document.createElement("img");hero.className="card-img";hero.src=photos[0];hero.onclick=function(ev){ev.stopPropagation();showLightbox(photos[0]);};card.appendChild(hero);}
+  var body=el("div","card-body"),top=el("div","card-top"),left=el("div");
+  left.appendChild(el("span","card-title",e.title||"Untitled"));
+  top.appendChild(left);
+  if(hasScore(e.score)){var b=el("span","badge",e.score+"/10");b.style.background=scoreBg(e.score);b.style.color=scoreCol(e.score);top.appendChild(b);}
+  body.appendChild(top);
+  var meta=[];if(e.date)meta.push(e.date);if(e.category)meta.push(e.category);if(e.source)meta.push(e.source);
+  if(meta.length)body.appendChild(el("div","card-meta",meta.join(" · ")));
+  appendThumbs(body,photos);
+  if(e.keyIssue)body.appendChild(el("div","card-note",e.keyIssue));
+  card.appendChild(body);
+  card.onclick=function(){setState({view:"yForm",selected:deepCopy(e),isNew:false});window.scrollTo(0,0);};
+  return card;
+}
+
+// =============================================================================
+// RECIPES (shared by both sides)
+// =============================================================================
+function ingredientLine(prefix,name,grams,tf){
+  var g=num(grams);
+  return {name:prefix+" — "+name,amount:round1(g)+"g"+(tf?" ("+bakersPct(g,tf)+"%)":"")};
+}
+function learningsNotes(e){
+  var parts=[];
+  if(hasScore(e.score))parts.push("Score: "+e.score+"/10");
+  if(e.ovenSpring)parts.push("Oven spring: "+e.ovenSpring);
+  if(e.crumb)parts.push("Crumb: "+e.crumb);
+  if(e.crust)parts.push("Crust: "+e.crust);
+  if(e.taste)parts.push("Taste: "+e.taste);
+  if(e.keyIssue)parts.push("Key issue: "+e.keyIssue);
+  if(e.nextChange)parts.push("Next time: "+e.nextChange);
+  if(e.notes)parts.push(e.notes);
+  return parts.join("\n");
+}
+// Turn a logged bake/entry into a freeform recipe (first pass — editable afterwards)
+function entryToRecipe(book,e){
+  if(book==="yum")return {title:e.title||"",category:e.category||"",source:e.source||"",description:"",ingredients:deepCopy(e.ingredients||[]),steps:deepCopy(e.steps||[]),notes:learningsNotes(e)};
+  if(e.format==="freeform")return {title:bakeTitle(e),source:"",description:"",ingredients:deepCopy(e.freeIngredients||[]),steps:deepCopy(e.freeSteps||[]),notes:learningsNotes(e)};
+  var b=normalizeBake(deepCopy(e)),tf=totalFlourG(b),L=b.levain,ing=[],st=[],i;
+  // Ingredients — prefixed by component
+  for(i=0;i<L.starter.flours.length;i++){if(num(L.starter.flours[i].grams))ing.push(ingredientLine("Starter",L.starter.flours[i].name||"flour",L.starter.flours[i].grams,tf));}
+  if(num(L.starter.waterG))ing.push(ingredientLine("Starter","Water",L.starter.waterG,tf));
+  for(i=0;i<L.flours.length;i++){if(num(L.flours[i].grams))ing.push(ingredientLine("Levain",L.flours[i].name||"flour",L.flours[i].grams,tf));}
+  if(num(L.waterG))ing.push(ingredientLine("Levain","Water",L.waterG,tf));
+  for(i=0;i<b.flours.length;i++){if(num(b.flours[i].grams)){var f=b.flours[i];ing.push(ingredientLine("Mix",(f.name||"flour")+(f.sifted==="Yes"&&f.extraction?" (sifted, "+f.extraction+"% extraction)":""),f.grams,tf));}}
+  if(num(b.water1G))ing.push(ingredientLine("Mix","Water",b.water1G,tf));
+  if(num(b.water2G))ing.push(ingredientLine("Bassinage","Water",b.water2G,tf));
+  if(num(b.saltG))ing.push(ingredientLine("Mix","Salt",b.saltG,tf));
+  for(i=0;i<b.otherIngredients.length;i++){if(b.otherIngredients[i].name)ing.push(ingredientLine("Mix",b.otherIngredients[i].name,b.otherIngredients[i].amount,tf));}
+  for(i=0;i<b.mixins.length;i++){if(b.mixins[i].name)ing.push({name:"Mix-in — "+b.mixins[i].name,amount:b.mixins[i].amount||""});}
+  for(i=0;i<b.toppings.length;i++){if(b.toppings[i].name)ing.push({name:"Topping — "+b.toppings[i].name,amount:b.toppings[i].amount||""});}
+  // Method — built from the process fields
+  var lf=levainFlourG(b),lw=levainWaterG(b);
+  if(lf||lw)st.push("Build levain: combine starter with "+round1(sumGrams(L.flours))+"g flour and "+round1(num(L.waterG))+"g water"+(num(L.buildHr)?"; ferment ~"+L.buildHr+" hr until ripe.":"."));
+  if(num(b.autolyseHr))st.push("Autolyse: mix flour with "+round1(num(b.water1G))+"g water; rest "+b.autolyseHr+" hr"+(b.autolyseTempF?" (dough "+b.autolyseTempF+"°F).":"."));
+  var add="Add levain and "+round1(num(b.saltG))+"g salt";
+  var oth=[];for(i=0;i<b.otherIngredients.length;i++){if(b.otherIngredients[i].name)oth.push(b.otherIngredients[i].name.toLowerCase());}
+  if(oth.length)add+=", plus "+oth.join(", ");
+  if(!num(b.autolyseHr))add="Mix flour with "+round1(num(b.water1G))+"g water. "+add;
+  add+=num(b.slapFoldMin)?"; slap and fold ~"+b.slapFoldMin+" min.":".";
+  st.push(add);
+  if(num(b.water2G))st.push("Bassinage: add "+round1(num(b.water2G))+"g water gradually.");
+  var mx=[];for(i=0;i<b.mixins.length;i++){if(b.mixins[i].name)mx.push(b.mixins[i].name.toLowerCase());}
+  if(mx.length)st.push("Fold in mix-ins: "+mx.join(", ")+".");
+  if(num(b.bulkHr)){
+    var bulk="Bulk ferment ~"+b.bulkHr+" hr"+(num(b.stretchFolds)?" with "+b.stretchFolds+" sets of stretch and folds":"");
+    var temps=[];if(b.bulkStartTempF||b.bulkEndTempF)temps.push("dough "+(b.bulkStartTempF||"?")+"°F → "+(b.bulkEndTempF||"?")+"°F");if(b.ambientTempF)temps.push("room "+b.ambientTempF+"°F");
+    st.push(bulk+(temps.length?" ("+temps.join(", ")+").":"."));
+  }
+  if(b.bulkOther)st.push(b.bulkOther);
+  st.push("Shape"+(b.retard?"; retard: "+b.retard+".":"."));
+  var tp=[];for(i=0;i<b.toppings.length;i++){if(b.toppings[i].name)tp.push(b.toppings[i].name.toLowerCase());}
+  if(tp.length)st.push("Top with "+tp.join(", ")+".");
+  if(num(b.bakeTempF)||num(b.bakeTimeMin))st.push("Bake"+(num(b.bakeTempF)?" at "+b.bakeTempF+"°F":"")+(num(b.bakeTimeMin)?" for "+b.bakeTimeMin+" min":"")+".");
+  var steps=[];for(i=0;i<st.length;i++)steps.push({text:st[i]});
+  var desc="Total hydration "+totalHydration(b)+"% · Salt "+bakersPct(b.saltG,tf)+"% · Levain "+round1(levainTotalG(b))+"g · Total flour "+round1(tf)+"g. Baker's % shown against total flour (incl. levain).";
+  return {title:bakeTitle(b),source:"",description:desc,ingredients:ing,steps:steps,notes:learningsNotes(b)};
+}
+function saveAsRecipe(book,form,photos){
+  var persist=book==="crumb"?persistBake:persistYEntry;
+  persist(form,photos,function(saved){
+    var r=entryToRecipe(book,saved);r.id=Date.now()+1;
+    var list=getRecipes(book).slice();list.push(r);setRecipes(book,list);
+    var k=recipeKey(book,r.id);state.photoCache[k]=photos.slice();
+    savePhotosK(k,photos,function(){
+      showToast("Saved to Recipes — tap Edit to tweak");
+      var v=recipeViews(book);var p={recipeDetail:r};p.view=v.detail;setState(p);window.scrollTo(0,0);
+    });
+  });
+}
+
+function renderRecipeCard(r,book){
+  var card=el("div","recipe-card");
+  card.appendChild(el("div","recipe-title",r.title||"Untitled recipe"));
+  var meta=[];if(r.category)meta.push(r.category);
+  if(r.ingredients&&r.ingredients.length)meta.push(r.ingredients.length+" ingredients");
+  if(r.steps&&r.steps.length)meta.push(r.steps.length+" steps");
+  if(r.source)meta.push(r.source);
+  if(meta.length)card.appendChild(el("div","recipe-meta",meta.join(" · ")));
+  card.onclick=function(){var p={recipeDetail:deepCopy(r)};p.view=recipeViews(book).detail;setState(p);window.scrollTo(0,0);};
+  return card;
+}
+
+function renderRecipeDetail(r,book){
+  var v=recipeViews(book),wrap=el("div","form-wrap");
+  var top=el("div","form-top");top.appendChild(el("div","form-title",r.title||"Recipe"));
+  var btns=el("div");btns.style.cssText="display:flex;align-items:center;gap:6px;flex-shrink:0";
+  var eb=btn("new-btn","Edit",function(){var p={selectedRecipe:deepCopy(r),isNewRecipe:false};p.view=v.form;setState(p);});
+  var cb=btn("close-btn","✕",function(){var p={recipeDetail:null};p.view=v.list;setState(p);});
+  btns.appendChild(eb);btns.appendChild(cb);top.appendChild(btns);wrap.appendChild(top);
+
+  var meta=el("div","card-meta");
+  if(r.category)meta.appendChild(document.createTextNode(r.category+(r.source?" · ":"")));
+  if(r.source){
+    if(/^https?:\/\//i.test(r.source)){var a=el("a","src-link",r.source.replace(/^https?:\/\/(www\.)?/i,"").split("/")[0]);a.href=r.source;a.target="_blank";a.rel="noopener";meta.appendChild(a);}
+    else meta.appendChild(document.createTextNode("Source: "+r.source));
+  }
+  if(meta.childNodes.length)wrap.appendChild(meta);
+
+  var photos=state.photoCache[recipeKey(book,r.id)]||[];
+  if(photos.length){
+    var hero=document.createElement("img");hero.className="card-img";hero.style.borderRadius="10px";hero.style.margin="8px 0";hero.src=photos[0];hero.onclick=function(){showLightbox(photos[0]);};wrap.appendChild(hero);
+    appendThumbs(wrap,photos);
+  }
+  if(r.description){var d=el("div","recipe-notes",r.description);d.style.fontStyle="italic";wrap.appendChild(d);}
+  if(r.ingredients&&r.ingredients.length){
+    wrap.appendChild(el("div","recipe-section-hdr","Ingredients"));
+    for(var i=0;i<r.ingredients.length;i++){var row=el("div","recipe-ingredient");row.appendChild(el("span",null,r.ingredients[i].name||""));row.appendChild(el("span",null,r.ingredients[i].amount||""));wrap.appendChild(row);}
+  }
+  if(r.steps&&r.steps.length){
+    wrap.appendChild(el("div","recipe-section-hdr","Method"));
+    for(var j=0;j<r.steps.length;j++){var s=el("div","recipe-step");s.appendChild(el("span","recipe-step-num",(j+1)+"."));s.appendChild(el("span",null,r.steps[j].text||""));wrap.appendChild(s);}
+  }
+  if(r.notes){wrap.appendChild(el("div","recipe-section-hdr","Notes"));wrap.appendChild(el("div","recipe-notes",r.notes));}
+  var del=btn("del-btn","Delete recipe",function(){
+    if(!window.confirm("Delete this recipe?"))return;
+    var list=getRecipes(book),nr=[];for(var i=0;i<list.length;i++){if(list[i].id!==r.id)nr.push(list[i]);}
+    setRecipes(book,nr);var k=recipeKey(book,r.id);delete state.photoCache[k];
+    deletePhotosK(k,function(){var p={recipeDetail:null};p.view=v.list;setState(p);});
+  });
+  del.style.marginTop="20px";wrap.appendChild(del);
+  return wrap;
+}
+
+function renderRecipeForm(recipe,isNew,book){
+  var v=recipeViews(book),form=deepCopy(recipe);
+  if(!form.ingredients)form.ingredients=[];if(!form.steps)form.steps=[];
+  var pk=form.id?recipeKey(book,form.id):null;
+  var photos=(pk&&state.photoCache[pk])?state.photoCache[pk].slice():[];
+  var wrap=el("div","form-wrap");
+  wrap.appendChild(formHeader(isNew?"New Recipe":(form.title||"Edit Recipe"),book==="crumb"?"Crumb Journal recipe":"Yum Journal recipe",function(){
+    var p={};if(!isNew&&form.id){p.view=v.detail;p.recipeDetail=recipe;}else p.view=v.list;setState(p);
+  }));
+  wrap.appendChild(sec("Recipe",
+    fld("Title",bindText(form,"title","e.g. Jalapeño cheddar sourdough")),
+    book==="yum"?fld("Category",renderCategoryPicker(form)):null,
+    fld("Source (optional)",bindText(form,"source","Cookbook, blog, link, person…")),
+    fld("Description",bindText(form,"description","Short description…",2))
+  ));
+  wrap.appendChild(sec("Photos",renderPhotoEditor(photos)));
+  wrap.appendChild(sec("Ingredients",renderRowEditor(form.ingredients,{col1ph:"Ingredient",col2ph:"Amount",col2cls:"amt",addLabel:"Add ingredient",allowPaste:true,pasteTitle:"ingredients"})));
+  wrap.appendChild(sec("Method",renderStepsEditor(form.steps)));
+  wrap.appendChild(sec("Notes",fld("Notes",bindText(form,"notes","Tips, variations…",3))));
+  wrap.appendChild(btn("save-btn","Save Recipe",function(){
+    var s=deepCopy(form);s.id=s.id||Date.now();
+    var list=getRecipes(book).slice(),idx=-1;
+    for(var i=0;i<list.length;i++){if(list[i].id===s.id){idx=i;break;}}
+    if(idx>=0)list[idx]=s;else list.push(s);
+    setRecipes(book,list);
+    var k=recipeKey(book,s.id);state.photoCache[k]=photos.slice();
+    savePhotosK(k,photos,function(){var p={recipeDetail:s};p.view=v.detail;setState(p);});
+  }));
+  return wrap;
+}
+
+// =============================================================================
+// EXPORT / IMPORT / ASK CLAUDE
+// =============================================================================
+function allPhotoKeys(){
+  var ks=[],i;
+  for(i=0;i<state.bakes.length;i++)ks.push(bakeKey(state.bakes[i].id));
+  for(i=0;i<state.recipes.length;i++)ks.push(recipeKey("crumb",state.recipes[i].id));
+  for(i=0;i<state.yEntries.length;i++)ks.push(yEntryKey(state.yEntries[i].id));
+  for(i=0;i<state.yRecipes.length;i++)ks.push(recipeKey("yum",state.yRecipes[i].id));
+  return ks;
+}
+function exportData(){
+  var done=showNotice("Preparing backup (loading photos)…");
+  var keys=allPhotoKeys(),photos={},left=keys.length;
+  function finish(){
+    done();
+    var data={app:"yum-journal",version:3,exported:new Date().toISOString(),
+      crumb:{bakes:state.bakes,grains:state.grains,recipes:state.recipes},
+      yum:{entries:state.yEntries,recipes:state.yRecipes},photos:photos};
+    var blob=new Blob([JSON.stringify(data)],{type:"application/json"});
+    var url=URL.createObjectURL(blob),a=document.createElement("a");
+    a.href=url;a.download="yum-journal-"+todayDate()+".json";
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    setTimeout(function(){URL.revokeObjectURL(url);},4000);
+  }
+  if(!left){finish();return;}
+  for(var i=0;i<keys.length;i++){(function(k){loadPhotosK(k,function(p){if(p&&p.length)photos[k]=p;left--;if(!left)finish();});})(keys[i]);}
+}
+function importData(file){
+  var done=showNotice("Importing… please wait");
+  var r=new FileReader();
+  r.onload=function(){
+    var d;
+    try{d=JSON.parse(r.result);}catch(e){done();alert("Could not read file. Make sure it's a Yum/Crumb Journal export.");return;}
+    var photoWrites={},summary;
+    if(d&&d.version===3){
+      var c=d.crumb||{},y=d.yum||{};
+      state.bakes=c.bakes||[];state.grains=c.grains||[];state.recipes=c.recipes||[];
+      state.yEntries=y.entries||[];state.yRecipes=y.recipes||[];
+      photoWrites=d.photos||{};
+      summary=state.bakes.length+" bakes, "+state.grains.length+" grains, "+state.recipes.length+" bread recipes, "+state.yEntries.length+" food entries, "+state.yRecipes.length+" food recipes";
+    } else {
+      // Older Crumb Journal export — replaces the bread side only, food side untouched
+      var bakes=Array.isArray(d)?d:(d.bakes||[]);
+      for(var i=0;i<bakes.length;i++){if(bakes[i].photos&&bakes[i].photos.length)photoWrites[bakeKey(bakes[i].id)]=bakes[i].photos;delete bakes[i].photos;}
+      var op=d.photos||{};for(var k in op){if(op.hasOwnProperty(k)&&op[k]&&op[k].length)photoWrites[bakeKey(k)]=op[k];}
+      state.bakes=bakes;state.grains=d.grains||state.grains;state.recipes=d.recipes||[];
+      summary=state.bakes.length+" bakes, "+state.grains.length+" grains, "+state.recipes.length+" recipes";
+    }
+    renumberBakes();
+    lsSet(BAKE_KEY,state.bakes);lsSet(GRAIN_KEY,state.grains);lsSet(RECIPE_KEY,state.recipes);
+    lsSet(YENTRY_KEY,state.yEntries);lsSet(YRECIPE_KEY,state.yRecipes);
+    var keys=[];for(var pk in photoWrites){if(photoWrites.hasOwnProperty(pk))keys.push(pk);}
+    var left=keys.length;
+    function finish(){done();state.photoCache={};render();alert("Imported "+summary+(keys.length?", with photos for "+keys.length+" items":"")+".");}
+    if(!left){finish();return;}
+    for(var j=0;j<keys.length;j++){(function(key){savePhotosK(key,photoWrites[key],function(){left--;if(!left)finish();});})(keys[j]);}
+  };
+  r.onerror=function(){done();alert("Could not read file.");};
+  r.readAsText(file);
+}
+
+function line(label,val){return (val!==""&&val!=null&&val!==undefined)?label+": "+val:"";}
+function joinLines(arr){var out=[];for(var i=0;i<arr.length;i++){if(arr[i])out.push(arr[i]);}return out;}
+function listText(items){var out=[];for(var i=0;i<(items||[]).length;i++){var it=items[i];if(it.name)out.push(it.name+(it.amount?" "+it.amount:""));}return out.join("; ");}
+function stepsText(steps){var out=[];for(var i=0;i<(steps||[]).length;i++){if(steps[i].text)out.push((i+1)+". "+steps[i].text);}return out.join(" ");}
+function recipesText(list){
+  var out=[];
+  for(var i=0;i<list.length;i++){var r=list[i];
+    out.push("- "+(r.title||"Untitled")+(r.category?" ["+r.category+"]":"")+(r.source?" (source: "+r.source+")":""));
+    if(r.description)out.push("  Description: "+r.description);
+    if(r.ingredients&&r.ingredients.length)out.push("  Ingredients: "+listText(r.ingredients));
+    if(r.steps&&r.steps.length)out.push("  Method: "+stepsText(r.steps));
+    if(r.notes)out.push("  Notes: "+r.notes.replace(/\n/g,"; "));
+  }
+  return out;
+}
+function buildCrumbText(){
+  var out=["CRUMB JOURNAL — my sourdough & bread baking log (exported "+todayDate()+").",
+    "Hydration is total dough hydration including levain flour and water. Flour blend %s include levain flour. Scores are 1–10.",""];
+  out.push("BAKES ("+state.bakes.length+")");
+  var sorted=state.bakes.slice().sort(function(a,b){return num(a.testNum)-num(b.testNum);});
+  for(var i=0;i<sorted.length;i++){
+    var b=normalizeBake(deepCopy(sorted[i]));
+    out.push("");out.push(bakeTitle(b)+" — "+(b.date||"")+" — "+(b.format==="freeform"?"Freeform":"Sourdough loaf"));
+    if(b.format==="freeform"){
+      out=out.concat(joinLines([line("  Ingredients",listText(b.freeIngredients)),line("  Method",stepsText(b.freeSteps))]));
+    } else {
+      var tf=totalFlourG(b),bl=combinedBlend(b),blend=[];
+      for(var j=0;j<bl.length;j++)blend.push(bl[j].pct+"% "+bl[j].name+" ("+bl[j].grams+"g)");
+      var sift=[];for(j=0;j<b.flours.length;j++){if(b.flours[j].sifted==="Yes")sift.push(b.flours[j].name+(b.flours[j].extraction?" at "+b.flours[j].extraction+"% extraction":""));}
+      out=out.concat(joinLines([
+        "  Flour blend: "+blend.join(", ")+"; total flour "+round1(tf)+"g",
+        sift.length?"  Sifted: "+sift.join(", "):"",
+        "  Levain: "+round1(levainTotalG(b))+"g (starter flour "+round1(sumGrams(b.levain.starter.flours))+"g + starter water "+round1(num(b.levain.starter.waterG))+"g; feed "+listText(b.levain.flours.map?b.levain.flours.map(function(f){return {name:f.name,amount:f.grams+"g"};}):[])+", water "+round1(num(b.levain.waterG))+"g)"+(b.levain.buildHr?"; build "+b.levain.buildHr+" hr":""),
+        "  Hydration: "+totalHydration(b)+"% total (mix water "+round1(num(b.water1G))+"g, bassinage "+round1(num(b.water2G))+"g); salt "+round1(num(b.saltG))+"g ("+bakersPct(b.saltG,tf)+"%)",
+        b.otherIngredients.length?"  Other ingredients: "+listText(b.otherIngredients):"",
+        b.mixins.length?"  Mix-ins: "+listText(b.mixins):"",
+        b.toppings.length?"  Toppings: "+listText(b.toppings):"",
+        "  Process: "+joinLines([line("autolyse",b.autolyseHr?b.autolyseHr+" hr":""),line("slap & fold",b.slapFoldMin?b.slapFoldMin+" min":""),line("stretch & folds",b.stretchFolds),line("bulk",b.bulkHr?b.bulkHr+" hr":""),line("retard",b.retard),line("other",b.bulkOther)]).join(", "),
+        joinLines([line("ambient",b.ambientTempF?b.ambientTempF+"°F":""),line("autolyse dough",b.autolyseTempF?b.autolyseTempF+"°F":""),line("bulk start",b.bulkStartTempF?b.bulkStartTempF+"°F":""),line("bulk end",b.bulkEndTempF?b.bulkEndTempF+"°F":"")]).length?"  Temps: "+joinLines([line("ambient",b.ambientTempF?b.ambientTempF+"°F":""),line("autolyse dough",b.autolyseTempF?b.autolyseTempF+"°F":""),line("bulk start",b.bulkStartTempF?b.bulkStartTempF+"°F":""),line("bulk end",b.bulkEndTempF?b.bulkEndTempF+"°F":"")]).join(", "):"",
+        (b.bakeTempF||b.bakeTimeMin)?"  Bake: "+(b.bakeTempF?b.bakeTempF+"°F":"")+(b.bakeTimeMin?" for "+b.bakeTimeMin+" min":""):"",
+        joinLines([line("oven spring",b.ovenSpring),line("crumb",b.crumb),line("crust",b.crust),line("taste",b.taste)]).length?"  Results: "+joinLines([line("oven spring",b.ovenSpring),line("crumb",b.crumb),line("crust",b.crust),line("taste",b.taste)]).join("; "):""
+      ]));
+    }
+    out=out.concat(joinLines([line("  Score",hasScore(b.score)?b.score+"/10":""),line("  Key issue",b.keyIssue),line("  Next time",b.nextChange),line("  Notes",b.notes)]));
+  }
+  if(state.grains.length){
+    out.push("");out.push("GRAINS & FLOURS ("+state.grains.length+")");
+    for(var g=0;g<state.grains.length;g++){var gr=state.grains[g];
+      out.push("- "+(gr.name||"")+" — "+joinLines([gr.farm,gr.type,gr.origin,gr.season]).join(", ")+(hasScore(gr.rating)?" — rated "+gr.rating+"/10":""));
+      var ex=joinLines([line("tasting",gr.tastingNotes),line("best for",gr.bestFor),line("notes",gr.notes)]);if(ex.length)out.push("  "+ex.join("; "));
+    }
+  }
+  if(state.recipes.length){out.push("");out.push("SAVED BREAD RECIPES ("+state.recipes.length+")");out=out.concat(recipesText(state.recipes));}
+  return out.join("\n");
+}
+function buildYumText(){
+  var out=["YUM JOURNAL — my everyday cooking log and recipes (exported "+todayDate()+"). Scores are 1–10.",""];
+  out.push("COOKING LOG ("+state.yEntries.length+")");
+  var sorted=state.yEntries.slice().sort(function(a,b){return (b.date||"").localeCompare(a.date||"");});
+  for(var i=0;i<sorted.length;i++){var e=sorted[i];
+    out.push("");out.push((e.title||"Untitled")+" — "+(e.date||"")+(e.category?" — "+e.category:"")+(e.source?" — source: "+e.source:""));
+    out=out.concat(joinLines([line("  Ingredients",listText(e.ingredients)),line("  Method",stepsText(e.steps)),line("  Score",hasScore(e.score)?e.score+"/10":""),line("  Key issue",e.keyIssue),line("  Next time",e.nextChange),line("  Notes",e.notes)]));
+  }
+  if(state.yRecipes.length){out.push("");out.push("SAVED RECIPES ("+state.yRecipes.length+")");out=out.concat(recipesText(state.yRecipes));}
+  return out.join("\n");
+}
+function askClaude(){
+  var isCrumb=state.book==="crumb";
+  var text=(isCrumb?buildCrumbText():buildYumText())+"\n\n---\nUsing the journal above, please answer my question: ";
+  var o=el("div","overlay"),m=el("div","modal");
+  m.appendChild(el("div","modal-title","💬 Ask Claude about your "+(isCrumb?"Crumb":"Yum")+" Journal"));
+  m.appendChild(el("div","modal-text","Copy your journal, open Claude, paste, then type your question at the end (e.g. \"what's been my best-rated flour blend?\"). Photos aren't included."));
+  var t=ta("",text,6);t.readOnly=true;t.style.fontSize="11px";t.style.marginBottom="12px";m.appendChild(t);
+  var row=el("div","modal-btns");
+  var copy=el("button","btn-primary","Copy journal");
+  copy.onclick=function(){
+    function ok(){copy.textContent="Copied ✓";}
+    function fallback(){t.readOnly=false;t.focus();t.select();try{t.setSelectionRange(0,t.value.length);}catch(e){}
+      var did=false;try{did=document.execCommand("copy");}catch(e){}t.readOnly=true;
+      if(did)ok();else copy.textContent="Select & copy manually";}
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(ok,fallback);}else fallback();
+  };
+  var open=document.createElement("a");open.className="btn-ghost";open.textContent="Open Claude";open.href="https://claude.ai/new";open.target="_blank";open.rel="noopener";
+  row.appendChild(copy);row.appendChild(open);m.appendChild(row);
+  var close=btn("format-cancel","Close",function(){if(o.parentNode)o.parentNode.removeChild(o);});close.style.marginTop="10px";m.appendChild(close);
+  o.appendChild(m);o.onclick=function(ev){if(ev.target===o&&o.parentNode)o.parentNode.removeChild(o);};
+  document.body.appendChild(o);
+}
+
+// =============================================================================
+// RENDER
+// =============================================================================
+function filterChips(cur,list,onPick){
+  var present={},i;for(i=0;i<list.length;i++){if(list[i].category)present[list[i].category]=true;}
+  var cats=["All"];for(i=0;i<CATEGORIES.length;i++){if(present[CATEGORIES[i]])cats.push(CATEGORIES[i]);}
+  if(cats.length<2)return null;
+  var row=el("div","filter-row");
+  for(i=0;i<cats.length;i++){(function(c){row.appendChild(btn("chip"+(cur===c?" active":""),c,function(){onPick(c);}));})(cats[i]);}
+  return row;
+}
+function storageBar(){
+  var used=0;try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);used+=(localStorage.getItem(k)||"").length*2;}}catch(e){}
+  var pct=Math.min(100,Math.round(used/(4.5*1024*1024)*100));
+  var w=el("div"),bar=el("div","storage-bar-wrap"),fill=el("div","storage-bar");fill.style.width=Math.max(pct,1)+"%";
+  if(pct>80)fill.style.background="#c05030";else if(pct>60)fill.style.background="#c08030";
+  bar.appendChild(fill);w.appendChild(bar);
+  w.appendChild(el("div","storage-label","Text storage "+Math.round(used/1024)+"KB ("+pct+"%) · photos stored separately"));
+  return w;
+}
+function photoKeysForView(){
+  var v=state.view,ks=[],i;
+  if(v==="list"){for(i=0;i<state.bakes.length;i++)ks.push(bakeKey(state.bakes[i].id));}
+  else if((v==="form"||v==="formFreeform")&&state.selected&&state.selected.id&&!state.isNew)ks.push(bakeKey(state.selected.id));
+  else if(v==="yList"){for(i=0;i<state.yEntries.length;i++)ks.push(yEntryKey(state.yEntries[i].id));}
+  else if(v==="yForm"&&state.selected&&state.selected.id)ks.push(yEntryKey(state.selected.id));
+  else if((v==="recipeDetail"||v==="yRecipeDetail")&&state.recipeDetail&&state.recipeDetail.id)ks.push(recipeKey(v==="recipeDetail"?"crumb":"yum",state.recipeDetail.id));
+  else if((v==="recipeForm"||v==="yRecipeForm")&&state.selectedRecipe&&state.selectedRecipe.id)ks.push(recipeKey(v==="recipeForm"?"crumb":"yum",state.selectedRecipe.id));
+  return ks;
+}
+function ensurePhotos(keys,cb){
+  var need=[];for(var i=0;i<keys.length;i++){if(state.photoCache[keys[i]]===undefined)need.push(keys[i]);}
+  if(!need.length){cb();return;}
+  var left=need.length;
+  for(var j=0;j<need.length;j++){(function(k){loadPhotosK(k,function(p){state.photoCache[k]=p||[];left--;if(!left)cb();});})(need[j]);}
+}
+var renderToken=0;
+function render(){
+  var token=++renderToken;
+  ensurePhotos(photoKeysForView(),function(){
+    if(token!==renderToken)return;
+    try{draw();}
+    catch(e){document.getElementById("app").innerHTML='<div style="padding:24px;font-family:monospace;font-size:13px;color:#a00">Something went wrong: '+(e&&e.message)+'. Your data is safe — try reopening the app.</div>';}
+  });
+}
+function draw(){
+  var app=document.getElementById("app");app.innerHTML="";
+  var isCrumb=state.book==="crumb",v=state.view;
+  // Header
+  var hdr=el("div","hdr"),row=el("div","hdr-row"),tl=el("div");
+  tl.appendChild(el("div","hdr-title",isCrumb?"🌾 Crumb Journal":"🍽️ Yum Journal"));
+  tl.appendChild(el("div","hdr-sub",isCrumb?"Fresh-milled sourdough log":"Everyday cooking & recipes"));
+  row.appendChild(tl);
+  row.appendChild(btn("swap-btn",isCrumb?"🍽️ Yum →":"🌾 Crumb →",function(){switchBook(isCrumb?"yum":"crumb");}));
+  hdr.appendChild(row);
+  var nav=el("div","hdr-nav");
+  var tabs=isCrumb?[["list","Journal",["list","form","formFreeform","formatPicker"]],["grains","Grains",["grains","grainForm"]],["recipes","Recipes",["recipes","recipeForm","recipeDetail"]]]
+                  :[["yList","Journal",["yList","yForm"]],["yRecipes","Recipes",["yRecipes","yRecipeForm","yRecipeDetail"]]];
+  for(var t=0;t<tabs.length;t++){(function(tab){nav.appendChild(btn("nav-btn"+(tab[2].indexOf(v)>=0?" active":""),tab[1],function(){setState({view:tab[0]});window.scrollTo(0,0);}));})(tabs[t]);}
+  hdr.appendChild(nav);
+  var util=el("div","hdr-nav");util.style.marginTop="8px";
+  util.appendChild(btn("nav-btn util","💬 Ask Claude",askClaude));
+  util.appendChild(btn("nav-btn util","⬇ Export",exportData));
+  var impLabel=document.createElement("label");impLabel.className="nav-btn util";impLabel.style.position="relative";impLabel.style.overflow="hidden";impLabel.textContent="⬆ Import";
+  var impInp=document.createElement("input");impInp.type="file";impInp.accept=".json,application/json";
+  impInp.style.cssText="position:absolute;width:1px;height:1px;opacity:.01;overflow:hidden";
+  impInp.onchange=function(){if(impInp.files[0]){if(window.confirm("Importing replaces what's currently in the app with the backup. Continue?"))importData(impInp.files[0]);impInp.value="";}};
+  impLabel.appendChild(impInp);util.appendChild(impLabel);
+  hdr.appendChild(util);
+  app.appendChild(hdr);
+  if(v==="list"||v==="yList")app.appendChild(storageBar());
+
+  var c=el("div","content");
+  if(v==="list"){
+    var lh=el("div","list-hdr");lh.appendChild(el("div","list-count",state.bakes.length+" bake"+(state.bakes.length!==1?"s":"")+" logged"));
+    lh.appendChild(btn("new-btn","+ New Bake",function(){setState({view:"formatPicker"});}));c.appendChild(lh);
+    if(!state.bakes.length)c.appendChild(el("div","empty-state","No bakes yet. Tap + New Bake to log your first loaf."));
+    var sb=state.bakes.slice().sort(function(a,b){return num(b.testNum)-num(a.testNum);});
+    for(var i=0;i<sb.length;i++)c.appendChild(renderBakeCard(sb[i]));
+  }
+  else if(v==="formatPicker")c.appendChild(renderFormatPicker());
+  else if(v==="form"&&state.selected)c.appendChild(renderSourdoughForm(state.selected,state.isNew));
+  else if(v==="formFreeform"&&state.selected)c.appendChild(renderFreeformForm(state.selected,state.isNew));
+  else if(v==="grains"){
+    var gh=el("div","list-hdr");gh.appendChild(el("div","list-count",state.grains.length+" grain"+(state.grains.length!==1?"s":"")+" logged"));
+    gh.appendChild(btn("new-btn","+ New Grain",function(){setState({view:"grainForm",selectedGrain:{id:null,name:"",farm:"",type:"",season:"",origin:"",tastingNotes:"",bestFor:"",rating:"",notes:""},isNewGrain:true});}));c.appendChild(gh);
+    if(!state.grains.length)c.appendChild(el("div","empty-state","No grains yet."));
+    var gs=state.grains.slice().sort(function(a,b){return (a.name||"").localeCompare(b.name||"");});
+    for(var g=0;g<gs.length;g++)c.appendChild(renderGrainCard(gs[g]));
+  }
+  else if(v==="grainForm"&&state.selectedGrain)c.appendChild(renderGrainForm(state.selectedGrain,state.isNewGrain));
+  else if(v==="yList"){
+    var yh=el("div","list-hdr");yh.appendChild(el("div","list-count",state.yEntries.length+" entr"+(state.yEntries.length!==1?"ies":"y")));
+    yh.appendChild(btn("new-btn","+ New Entry",function(){setState({view:"yForm",isNew:true,selected:{id:null,title:"",date:todayDate(),category:"",source:"",ingredients:[],steps:[],score:"",keyIssue:"",nextChange:"",notes:""}});}));c.appendChild(yh);
+    var fr=filterChips(state.yFilter,state.yEntries,function(cat){setState({yFilter:cat});});if(fr)c.appendChild(fr);
+    if(!state.yEntries.length)c.appendChild(el("div","empty-state","Nothing logged yet. Tap + New Entry to record something you cooked."));
+    var ye=state.yEntries.slice().sort(function(a,b){return (b.date||"").localeCompare(a.date||"")||(num(b.id)-num(a.id));});
+    for(var y=0;y<ye.length;y++){if(state.yFilter==="All"||ye[y].category===state.yFilter)c.appendChild(renderYEntryCard(ye[y]));}
+  }
+  else if(v==="yForm"&&state.selected)c.appendChild(renderYEntryForm(state.selected,state.isNew));
+  else if(v==="recipes"||v==="yRecipes"){
+    var book=v==="recipes"?"crumb":"yum",list=getRecipes(book),rv=recipeViews(book);
+    var rh=el("div","list-hdr");rh.appendChild(el("div","list-count",list.length+" recipe"+(list.length!==1?"s":"")));
+    rh.appendChild(btn("new-btn","+ New Recipe",function(){var p={selectedRecipe:{id:null,title:"",category:"",source:"",description:"",ingredients:[],steps:[],notes:""},isNewRecipe:true};p.view=rv.form;setState(p);}));c.appendChild(rh);
+    if(book==="yum"){var rf=filterChips(state.yrFilter,list,function(cat){setState({yrFilter:cat});});if(rf)c.appendChild(rf);}
+    if(!list.length)c.appendChild(el("div","empty-state","No recipes yet. Add one here, or tap “Save as recipe” on any journal entry."));
+    var rs=list.slice().sort(function(a,b){return (a.title||"").localeCompare(b.title||"");});
+    for(var r=0;r<rs.length;r++){if(book==="crumb"||state.yrFilter==="All"||rs[r].category===state.yrFilter)c.appendChild(renderRecipeCard(rs[r],book));}
+  }
+  else if((v==="recipeForm"||v==="yRecipeForm")&&state.selectedRecipe)c.appendChild(renderRecipeForm(state.selectedRecipe,state.isNewRecipe,v==="recipeForm"?"crumb":"yum"));
+  else if((v==="recipeDetail"||v==="yRecipeDetail")&&state.recipeDetail)c.appendChild(renderRecipeDetail(state.recipeDetail,v==="recipeDetail"?"crumb":"yum"));
+  else {state.view=isCrumb?"list":"yList";return draw();}
+  app.appendChild(c);
+}
+
+try{renumberBakes();render();}
+catch(e){document.getElementById("app").innerHTML='<div style="padding:24px;font-family:monospace;font-size:13px;color:#a00">Something went wrong: '+(e&&e.message)+'</div>';}
+</script>
+</body>
+</html>
